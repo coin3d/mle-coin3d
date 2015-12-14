@@ -1,0 +1,55 @@
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "coin3", "coin3.vcxproj", "{287BE545-E3E6-DA94-FBB3-ECD7576C34ED}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "coin3_install", "coin3_install.vcxproj", "{A6468C25-5319-9730-B092-6215B9A43A4D}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "coin3_uninstall", "coin3_uninstall.vcxproj", "{501BD85C-7ACC-C2F4-7A3B-10A73CAA1A9C}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "coin3_docs", "coin3_docs.vcxproj", "{D964F5B9-8C99-FAB0-4AE6-D5EDCB27020E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		DLL (Debug)|Win32 = DLL (Debug)|Win32
+		DLL (Release)|Win32 = DLL (Release)|Win32
+		LIB (Debug)|Win32 = LIB (Debug)|Win32
+		LIB (Release)|Win32 = LIB (Release)|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{287BE545-E3E6-DA94-FBB3-ECD7576C34ED}.DLL (Debug)|Win32.ActiveCfg = DLL (Debug)|Win32
+		{287BE545-E3E6-DA94-FBB3-ECD7576C34ED}.DLL (Debug)|Win32.Build.0 = DLL (Debug)|Win32
+		{287BE545-E3E6-DA94-FBB3-ECD7576C34ED}.DLL (Release)|Win32.ActiveCfg = DLL (Release)|Win32
+		{287BE545-E3E6-DA94-FBB3-ECD7576C34ED}.DLL (Release)|Win32.Build.0 = DLL (Release)|Win32
+		{287BE545-E3E6-DA94-FBB3-ECD7576C34ED}.LIB (Debug)|Win32.ActiveCfg = LIB (Debug)|Win32
+		{287BE545-E3E6-DA94-FBB3-ECD7576C34ED}.LIB (Debug)|Win32.Build.0 = LIB (Debug)|Win32
+		{287BE545-E3E6-DA94-FBB3-ECD7576C34ED}.LIB (Release)|Win32.ActiveCfg = LIB (Release)|Win32
+		{287BE545-E3E6-DA94-FBB3-ECD7576C34ED}.LIB (Release)|Win32.Build.0 = LIB (Release)|Win32
+		{A6468C25-5319-9730-B092-6215B9A43A4D}.DLL (Debug)|Win32.ActiveCfg = DLL (Debug)|Win32
+		{A6468C25-5319-9730-B092-6215B9A43A4D}.DLL (Debug)|Win32.Build.0 = DLL (Debug)|Win32
+		{A6468C25-5319-9730-B092-6215B9A43A4D}.DLL (Release)|Win32.ActiveCfg = DLL (Release)|Win32
+		{A6468C25-5319-9730-B092-6215B9A43A4D}.DLL (Release)|Win32.Build.0 = DLL (Release)|Win32
+		{A6468C25-5319-9730-B092-6215B9A43A4D}.LIB (Debug)|Win32.ActiveCfg = LIB (Debug)|Win32
+		{A6468C25-5319-9730-B092-6215B9A43A4D}.LIB (Debug)|Win32.Build.0 = LIB (Debug)|Win32
+		{A6468C25-5319-9730-B092-6215B9A43A4D}.LIB (Release)|Win32.ActiveCfg = LIB (Release)|Win32
+		{A6468C25-5319-9730-B092-6215B9A43A4D}.LIB (Release)|Win32.Build.0 = LIB (Release)|Win32
+		{501BD85C-7ACC-C2F4-7A3B-10A73CAA1A9C}.DLL (Debug)|Win32.ActiveCfg = DLL (Debug)|Win32
+		{501BD85C-7ACC-C2F4-7A3B-10A73CAA1A9C}.DLL (Debug)|Win32.Build.0 = DLL (Debug)|Win32
+		{501BD85C-7ACC-C2F4-7A3B-10A73CAA1A9C}.DLL (Release)|Win32.ActiveCfg = DLL (Release)|Win32
+		{501BD85C-7ACC-C2F4-7A3B-10A73CAA1A9C}.DLL (Release)|Win32.Build.0 = DLL (Release)|Win32
+		{501BD85C-7ACC-C2F4-7A3B-10A73CAA1A9C}.LIB (Debug)|Win32.ActiveCfg = LIB (Debug)|Win32
+		{501BD85C-7ACC-C2F4-7A3B-10A73CAA1A9C}.LIB (Debug)|Win32.Build.0 = LIB (Debug)|Win32
+		{501BD85C-7ACC-C2F4-7A3B-10A73CAA1A9C}.LIB (Release)|Win32.ActiveCfg = LIB (Release)|Win32
+		{501BD85C-7ACC-C2F4-7A3B-10A73CAA1A9C}.LIB (Release)|Win32.Build.0 = LIB (Release)|Win32
+		{D964F5B9-8C99-FAB0-4AE6-D5EDCB27020E}.DLL (Debug)|Win32.ActiveCfg = DLL (Debug)|Win32
+		{D964F5B9-8C99-FAB0-4AE6-D5EDCB27020E}.DLL (Debug)|Win32.Build.0 = DLL (Debug)|Win32
+		{D964F5B9-8C99-FAB0-4AE6-D5EDCB27020E}.DLL (Release)|Win32.ActiveCfg = DLL (Release)|Win32
+		{D964F5B9-8C99-FAB0-4AE6-D5EDCB27020E}.DLL (Release)|Win32.Build.0 = DLL (Release)|Win32
+		{D964F5B9-8C99-FAB0-4AE6-D5EDCB27020E}.LIB (Debug)|Win32.ActiveCfg = LIB (Debug)|Win32
+		{D964F5B9-8C99-FAB0-4AE6-D5EDCB27020E}.LIB (Debug)|Win32.Build.0 = LIB (Debug)|Win32
+		{D964F5B9-8C99-FAB0-4AE6-D5EDCB27020E}.LIB (Release)|Win32.ActiveCfg = LIB (Release)|Win32
+		{D964F5B9-8C99-FAB0-4AE6-D5EDCB27020E}.LIB (Release)|Win32.Build.0 = LIB (Release)|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
