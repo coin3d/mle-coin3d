@@ -328,8 +328,6 @@
     </CustomBuildStep>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\draggers\SoTransformer2Dragger.cpp" />
-    <ClCompile Include="..\..\src\manips\SoTransformer2Manip.cpp" />
     <ClCompile Include="..\..\src\tidbits.cpp">
       <Optimization Condition="'$(Configuration)|$(Platform)'=='DLL (Debug)|Win32'">Disabled</Optimization>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='DLL (Debug)|Win32'">%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -21284,8 +21282,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\include\Inventor\draggers\SoTransformer2Dragger.h" />
-    <ClInclude Include="..\..\include\Inventor\manips\SoTransformer2Manip.h" />
     <ClInclude Include="..\..\include\SoDebug.h" />
     <ClInclude Include="..\..\include\SoWinEnterScope.h" />
     <ClInclude Include="..\..\include\SoWinLeaveScope.h" />
@@ -21323,7 +21319,6 @@
     <ClInclude Include="..\..\include\Inventor\C\threads\thread.h" />
     <ClInclude Include="..\..\include\Inventor\C\threads\worker.h" />
     <ClInclude Include="..\..\include\Inventor\C\threads\wpool.h" />
-    <ClInclude Include="data\draggerDefaults\transformer2Dragger.h" />
     <ClInclude Include="include\Inventor\C\basic.h" />
     <ClInclude Include="..\..\include\Inventor\C\tidbits.h" />
     <ClInclude Include="..\..\include\Inventor\VRMLnodes\SoVRML.h" />
