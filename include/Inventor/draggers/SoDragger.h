@@ -168,6 +168,9 @@ protected:
   // being a private method to a protected method in Coin to make it
   // possible to construct draggers which can handle Motion3 events.
   void updateDraggerCache(const SoPath * path);
+  
+  // Added to support Magic Lantern SoTransformer2Dragger.
+  void invalidateWorldConversionMatrices();
 
 private:
   void updateElements(class SoState * state);

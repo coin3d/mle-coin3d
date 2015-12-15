@@ -215,6 +215,7 @@
 #include <Inventor/draggers/SoTrackballDragger.h>
 #include <Inventor/draggers/SoTransformBoxDragger.h>
 #include <Inventor/draggers/SoTransformerDragger.h>
+#include <Inventor/draggers/SoTransformer2Dragger.h>
 #include <Inventor/draggers/SoTranslate1Dragger.h>
 #include <Inventor/draggers/SoTranslate2Dragger.h>
 #include <Inventor/actions/SoHandleEventAction.h>
@@ -432,6 +433,7 @@ SoDragger::initClasses(void)
   SoTrackballDragger::initClass();
   SoTransformBoxDragger::initClass();
   SoTransformerDragger::initClass();
+  SoTransformer2Dragger::initClass();
   SoTranslate1Dragger::initClass();
   SoTranslate2Dragger::initClass();
 }
@@ -837,6 +839,21 @@ SoDragger::getWorldToLocalMatrix(void)
     return m;
   }
   return SbMatrix::identity();
+}
+
+/*!
+  Invalidates world conversion matrices.
+*/
+void
+SoDragger::invalidateWorldConversionMatrices() 
+{
+  if (PRIVATE(this)->draggercache)
+  {
+	SbMatrix m1 = PRIVATE(this)->draggercache->draggerToWorld;
+    m1 = SbMatrix::identity();
+	SbMatrix m2 = PRIVATE(this)->draggercache->worldToDragger;
+    m2 = SbMatrix::identity();
+  }
 }
 
 /*!

@@ -69,6 +69,7 @@
 #include <Inventor/manips/SoTrackballManip.h>
 #include <Inventor/manips/SoTransformBoxManip.h>
 #include <Inventor/manips/SoTransformerManip.h>
+#include <Inventor/manips/SoTransformer2Manip.h>
 #endif // HAVE_MANIPULATORS
 
 #include "tidbitsp.h"
@@ -147,6 +148,7 @@ SoInteraction::init(void)
   SoTrackballManip::initClass();
   SoTransformBoxManip::initClass();
   SoTransformerManip::initClass();
+  SoTransformer2Manip::initClass();
 #endif // HAVE_MANIPULATORS
 
   interaction_isinitialized = TRUE;

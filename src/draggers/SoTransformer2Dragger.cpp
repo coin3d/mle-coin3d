@@ -1,35 +1,7 @@
-/**************************************************************************\
- *
- *  This file is part of the Coin 3D visualization library.
- *  Copyright (C) by Kongsberg Oil & Gas Technologies.
- *
- *  This library is free software; you can redistribute it and/or
- *  modify it under the terms of the GNU General Public License
- *  ("GPL") version 2 as published by the Free Software Foundation.
- *  See the file LICENSE.GPL at the root directory of this source
- *  distribution for additional information about the GNU GPL.
- *
- *  For using Coin with software that can not be combined with the GNU
- *  GPL, and for taking advantage of the additional benefits of our
- *  support services, please contact Kongsberg Oil & Gas Technologies
- *  about acquiring a Coin Professional Edition License.
- *
- *  See http://www.coin3d.org/ for more information.
- *
- *  Kongsberg Oil & Gas Technologies, Bygdoy Alle 5, 0257 Oslo, NORWAY.
- *  http://www.sim.no/  sales@sim.no  coin-support@coin3d.org
- *
-\**************************************************************************/
-
-#ifdef HAVE_CONFIG_H
-#include "config.h"
-#endif // HAVE_CONFIG_H
-
-#ifdef HAVE_DRAGGERS
 
 /*!
-  \class SoTransformerDragger SoTransformerDragger.h Inventor/draggers/SoTransformerDragger.h
-  \brief The SoTransformerDragger provides geometry for translation, scaling and rotations.
+  \class SoTransformer2Dragger SoTransformer2Dragger.h Inventor/draggers/SoTransformer2Dragger.h
+  \brief The SoTransformer2Dragger provides geometry for translation, scaling and rotations.
   \ingroup draggers
 
   \DRAGGER_DEFAULT_SCREENSHOT
@@ -67,18 +39,19 @@
 
 
   For the application programmer's convenience, the Coin library also
-  provides a manipulator class called SoTransformerManip, which wraps
-  the SoTransformerDragger into the necessary mechanisms for making
+  provides a manipulator class called SoTransformer2Manip, which wraps
+  the SoTransformer2Dragger into the necessary mechanisms for making
   direct insertion of this dragger into a scenegraph possible with
   very little effort.
 
-  \sa SoTransformerManip
+  \sa SoTransformer2Manip
 */
 
-#include <Inventor/draggers/SoTransformerDragger.h>
+#include <string.h>
 
-#include <cstring>
-
+#include <Inventor/draggers/SoTransformer2Dragger.h>
+//#include <Inventor/nodekits/SoSubKitP.h>
+#include "nodekits/SoSubKitP.h"
 #include <Inventor/nodes/SoAntiSquish.h>
 #include <Inventor/nodes/SoLocateHighlight.h>
 #include <Inventor/nodes/SoRotation.h>
@@ -86,6 +59,7 @@
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoTransform.h>
 #include <Inventor/nodes/SoTranslation.h>
+#include <Inventor/nodes/SoMatrixTransform.h>
 #include <Inventor/sensors/SoFieldSensor.h>
 #include <Inventor/SbVec3f.h>
 #include <Inventor/SbMatrix.h>
@@ -98,11 +72,9 @@
 #include <Inventor/actions/SoGetMatrixAction.h>
 #include <Inventor/lists/SoPathList.h>
 
-#include <data/draggerDefaults/transformerDragger.h>
+#include <data/draggerDefaults/transformer2Dragger.h>
 
-#include "coindefs.h" // COIN_STUB() & COIN_OBSOLETED()
-#include "nodekits/SoSubKitP.h"
-#include "SbBasicP.h"
+#include <coindefs.h> // COIN_STUB() & COIN_OBSOLETED()
 
 // FIXME, bugs or missing features (pederb, 20000224):
 // o some feedback is missing (mostly crosshair)
@@ -128,56 +100,65 @@
 //
 // workingToWorld = surroundScaleMatrix * localToWorld
 // worldToWorking = worldToLocal * surroundScaleMatrix
-//
+// 
 // boxPointInWorldSpace = p * surroundScaleMatrix * localToWorld
 // worldPointInBoxSpace = p * worldToLocal * surroundScaleMatrix
 
 /*!
-  \enum SoTransformerDragger::State
+  \enum SoTransformer2Dragger::State
 
   The various possible states the dragger might be in at any given
-  time. That is: either SoTransformerDragger::INACTIVE if there's no
+  time. That is: either SoTransformer2Dragger::INACTIVE if there's no
   interaction, or any of the other values to indicate what operation
   the end-user is currently executing.
 */
 
 /*!
-  \var SoSFRotation SoTransformerDragger::rotation
+  \var SoSFRotation SoTransformer2Dragger::rotation
 
   This field is continuously updated to contain the orientation of the
   dragger.
 */
 /*!
-  \var SoSFVec3f SoTransformerDragger::translation
+  \var SoSFVec3f SoTransformer2Dragger::translation
 
   The dragger's offset position from the local origo.
 */
 /*!
-  \var SoSFVec3f SoTransformerDragger::scaleFactor
+  \var SoSFVec3f SoTransformer2Dragger::scaleFactor
 
   Continuously updated to contain the current vector of scaling along
   the X, Y and Z axes.
 */
+/*!
+  \var SoSFVec3f SoTransformer2Dragger::center
+
+  The dragger's center position from the local origo.
+*/
 
 // FIXME: can't see what this is for -- investigate. 20011208 mortene.
 //  /*!
-//    \var SoSFFloat SoTransformerDragger::minDiscRotDot
+//    \var SoSFFloat SoTransformer2Dragger::minDiscRotDot
 //  */
 
 /*!
-  \var SoFieldSensor * SoTransformerDragger::translFieldSensor
+  \var SoFieldSensor * SoTransformer2Dragger::translFieldSensor
   \COININTERNAL
 */
 /*!
-  \var SoFieldSensor * SoTransformerDragger::scaleFieldSensor
+  \var SoFieldSensor * SoTransformer2Dragger::scaleFieldSensor
   \COININTERNAL
 */
 /*!
-  \var SoFieldSensor * SoTransformerDragger::rotateFieldSensor
+  \var SoFieldSensor * SoTransformer2Dragger::rotateFieldSensor
   \COININTERNAL
 */
 /*!
-  \var SoNodeList SoTransformerDragger::antiSquishList
+  \var SoFieldSensor * SoTransformer2Dragger::centerFieldSensor
+  \COININTERNAL
+*/
+/*!
+  \var SoNodeList SoTransformer2Dragger::antiSquishList
   \COININTERNAL
 */
 
@@ -197,7 +178,7 @@
 
 #ifndef DOXYGEN_SKIP_THIS
 
-class SoTransformerDraggerP {
+class SoTransformer2DraggerP {
 public:
   SbMatrix prevMotionMatrix;
   SbVec3f prevWorldHitPt;
@@ -215,22 +196,21 @@ public:
   int dimension;
 };
 
-int SoTransformerDraggerP::colinearThreshold = 3; // FIXME: find default value from somewhere
+int SoTransformer2DraggerP::colinearThreshold = 3; // FIXME: find default value from somewhere
 
 #endif // DOXYGEN_SKIP_THIS
 
-SO_KIT_SOURCE(SoTransformerDragger);
+SO_KIT_SOURCE(SoTransformer2Dragger);
 
 // doc in superclass
 void
-SoTransformerDragger::initClass(void)
+SoTransformer2Dragger::initClass(void)
 {
-  SO_KIT_INTERNAL_INIT_CLASS(SoTransformerDragger, SO_FROM_INVENTOR_1);
-  SoTransformerDraggerP::colinearThreshold = 3;
+  SO_KIT_INTERNAL_INIT_CLASS(SoTransformer2Dragger, SO_FROM_INVENTOR_1);
 }
 
 void
-SoTransformerDragger::build_catalog1(void)
+SoTransformer2Dragger::build_catalog1(void)
 {
   SO_KIT_ADD_CATALOG_ENTRY(surroundScale, SoSurroundScale, TRUE, topSeparator, overallStyle, TRUE);
   SO_KIT_ADD_CATALOG_ENTRY(overallStyle, SoGroup, TRUE, topSeparator, geomSeparator, FALSE);
@@ -238,7 +218,7 @@ SoTransformerDragger::build_catalog1(void)
 }
 
 void
-SoTransformerDragger::build_catalog2(void)
+SoTransformer2Dragger::build_catalog2(void)
 {
   SO_KIT_ADD_CATALOG_ENTRY(translator1Switch, SoSwitch, TRUE, translatorSep, translator2Switch, FALSE);
   SO_KIT_ADD_CATALOG_ENTRY(translator1LocateGroup, SoLocateHighlight, TRUE, translator1Switch, translator1Active, FALSE);
@@ -267,8 +247,10 @@ SoTransformerDragger::build_catalog2(void)
 }
 
 void
-SoTransformerDragger::build_catalog3(void)
+SoTransformer2Dragger::build_catalog3(void)
 {
+  SO_KIT_ADD_CATALOG_ENTRY(translateToCenter, SoMatrixTransform, TRUE, topSeparator, rotatorSep, TRUE);
+
   SO_KIT_ADD_CATALOG_ENTRY(rotatorSep, SoSeparator, TRUE, topSeparator, scaleSep, FALSE);
   SO_KIT_ADD_CATALOG_ENTRY(rotator1Switch, SoSwitch, TRUE, rotatorSep, rotator2Switch, FALSE);
   SO_KIT_ADD_CATALOG_ENTRY(rotator1LocateGroup, SoLocateHighlight, TRUE, rotator1Switch, rotator1Active, FALSE);
@@ -297,7 +279,7 @@ SoTransformerDragger::build_catalog3(void)
 }
 
 void
-SoTransformerDragger::build_catalog4(void)
+SoTransformer2Dragger::build_catalog4(void)
 {
   SO_KIT_ADD_CATALOG_ENTRY(scaleSep, SoSeparator, TRUE, topSeparator, circleFeedbackSep, FALSE);
   SO_KIT_ADD_CATALOG_ENTRY(scale1Switch, SoSwitch, TRUE, scaleSep, scale2Switch, FALSE);
@@ -335,7 +317,7 @@ SoTransformerDragger::build_catalog4(void)
 }
 
 void
-SoTransformerDragger::build_catalog5(void)
+SoTransformer2Dragger::build_catalog5(void)
 {
   SO_KIT_ADD_CATALOG_ENTRY(axisFeedbackSep, SoSeparator, TRUE, geomSeparator, translateBoxFeedbackSep, FALSE);
   SO_KIT_ADD_CATALOG_ENTRY(axisFeedbackLocation, SoTranslation, TRUE, axisFeedbackSep, xAxisFeedbackSwitch, FALSE);
@@ -369,7 +351,7 @@ SoTransformerDragger::build_catalog5(void)
 }
 
 void
-SoTransformerDragger::build_catalog6(void)
+SoTransformer2Dragger::build_catalog6(void)
 {
   SO_KIT_ADD_CATALOG_ENTRY(negXWallFeedbackSwitch, SoSwitch, TRUE, geomSeparator, negYWallFeedbackSwitch, FALSE);
   SO_KIT_ADD_CATALOG_ENTRY(negXWallFeedback, SoSeparator, TRUE, negXWallFeedbackSwitch, negXRoundWallFeedback, TRUE);
@@ -394,8 +376,10 @@ SoTransformerDragger::build_catalog6(void)
   SO_KIT_ADD_CATALOG_ENTRY(zCircleFeedback, SoSeparator, TRUE, zCircleFeedbackSwitch, "", TRUE);
 }
 
-#define PRIVATE(obj) ((obj)->pimpl)
-#define THISP(d) static_cast<SoTransformerDragger *>(d)
+#undef THIS
+#define THIS this->pimpl
+#undef THISP
+#define THISP thisp->pimpl
 
 // FIXME: document which parts need to be present in the geometry
 // scenegraph, and what role they play in the dragger. 20010913 mortene.
@@ -405,7 +389,7 @@ SoTransformerDragger::build_catalog6(void)
   \NODEKIT_PRE_DIAGRAM
 
   \verbatim
-  CLASS SoTransformerDragger
+  CLASS SoTransformer2Dragger
   -->"this"
         "callbackList"
         "topSeparator"
@@ -478,6 +462,7 @@ SoTransformerDragger::build_catalog6(void)
   -->            "translator6LocateGroup"
   -->               "translator6"
   -->            "translator6Active"
+  -->      "translateToCenter"
   -->      "rotatorSep"
   -->         "rotator1Switch"
   -->            "rotator1LocateGroup"
@@ -554,154 +539,157 @@ SoTransformerDragger::build_catalog6(void)
   \NODEKIT_PRE_TABLE
 
   \verbatim
-  CLASS SoTransformerDragger
-  PVT   "this",  SoTransformerDragger  ---
-        "callbackList",  SoNodeKitListPart [ SoCallback, SoEventCallback ]
-  PVT   "topSeparator",  SoSeparator  ---
-  PVT   "motionMatrix",  SoMatrixTransform  ---
-        "surroundScale",  SoSurroundScale  ---
-  PVT   "overallStyle",  SoGroup  ---
-  PVT   "geomSeparator",  SoSeparator  ---
-  PVT   "translatorSep",  SoSeparator  ---
-  PVT   "translator1Switch",  SoSwitch  ---
-  PVT   "translator1LocateGroup",  SoLocateHighlight  ---
-        "translator1",  SoSeparator  ---
-        "translator1Active",  SoSeparator  ---
-  PVT   "translator2Switch",  SoSwitch  ---
-  PVT   "translator2LocateGroup",  SoLocateHighlight  ---
-        "translator2",  SoSeparator  ---
-        "translator2Active",  SoSeparator  ---
-  PVT   "translator3Switch",  SoSwitch  ---
-  PVT   "translator3LocateGroup",  SoLocateHighlight  ---
-        "translator3",  SoSeparator  ---
-        "translator3Active",  SoSeparator  ---
-  PVT   "translator4Switch",  SoSwitch  ---
-  PVT   "translator4LocateGroup",  SoLocateHighlight  ---
-        "translator4",  SoSeparator  ---
-        "translator4Active",  SoSeparator  ---
-  PVT   "translator5Switch",  SoSwitch  ---
-  PVT   "translator5LocateGroup",  SoLocateHighlight  ---
-        "translator5",  SoSeparator  ---
-        "translator5Active",  SoSeparator  ---
-  PVT   "translator6Switch",  SoSwitch  ---
-  PVT   "translator6LocateGroup",  SoLocateHighlight  ---
-        "translator6",  SoSeparator  ---
-        "translator6Active",  SoSeparator  ---
-  PVT   "rotatorSep",  SoSeparator  ---
-  PVT   "rotator1Switch",  SoSwitch  ---
-  PVT   "rotator1LocateGroup",  SoLocateHighlight  ---
-        "rotator1",  SoSeparator  ---
-        "rotator1Active",  SoSeparator  ---
-  PVT   "rotator2Switch",  SoSwitch  ---
-  PVT   "rotator2LocateGroup",  SoLocateHighlight  ---
-        "rotator2",  SoSeparator  ---
-        "rotator2Active",  SoSeparator  ---
-  PVT   "rotator3Switch",  SoSwitch  ---
-  PVT   "rotator3LocateGroup",  SoLocateHighlight  ---
-        "rotator3",  SoSeparator  ---
-        "rotator3Active",  SoSeparator  ---
-  PVT   "rotator4Switch",  SoSwitch  ---
-  PVT   "rotator4LocateGroup",  SoLocateHighlight  ---
-        "rotator4",  SoSeparator  ---
-        "rotator4Active",  SoSeparator  ---
-  PVT   "rotator5Switch",  SoSwitch  ---
-  PVT   "rotator5LocateGroup",  SoLocateHighlight  ---
-        "rotator5",  SoSeparator  ---
-        "rotator5Active",  SoSeparator  ---
-  PVT   "rotator6Switch",  SoSwitch  ---
-  PVT   "rotator6LocateGroup",  SoLocateHighlight  ---
-        "rotator6",  SoSeparator  ---
-        "rotator6Active",  SoSeparator  ---
-  PVT   "scaleSep",  SoSeparator  ---
-  PVT   "scale1Switch",  SoSwitch  ---
-  PVT   "scale1LocateGroup",  SoLocateHighlight  ---
-        "scale1",  SoSeparator  ---
-        "scale1Active",  SoSeparator  ---
-  PVT   "scale2Switch",  SoSwitch  ---
-  PVT   "scale2LocateGroup",  SoLocateHighlight  ---
-        "scale2",  SoSeparator  ---
-        "scale2Active",  SoSeparator  ---
-  PVT   "scale3Switch",  SoSwitch  ---
-  PVT   "scale3LocateGroup",  SoLocateHighlight  ---
-        "scale3",  SoSeparator  ---
-        "scale3Active",  SoSeparator  ---
-  PVT   "scale4Switch",  SoSwitch  ---
-  PVT   "scale4LocateGroup",  SoLocateHighlight  ---
-        "scale4",  SoSeparator  ---
-        "scale4Active",  SoSeparator  ---
-  PVT   "scale5Switch",  SoSwitch  ---
-  PVT   "scale5LocateGroup",  SoLocateHighlight  ---
-        "scale5",  SoSeparator  ---
-        "scale5Active",  SoSeparator  ---
-  PVT   "scale6Switch",  SoSwitch  ---
-  PVT   "scale6LocateGroup",  SoLocateHighlight  ---
-        "scale6",  SoSeparator  ---
-        "scale6Active",  SoSeparator  ---
-  PVT   "scale7Switch",  SoSwitch  ---
-  PVT   "scale7LocateGroup",  SoLocateHighlight  ---
-        "scale7",  SoSeparator  ---
-        "scale7Active",  SoSeparator  ---
-  PVT   "scale8Switch",  SoSwitch  ---
-  PVT   "scale8LocateGroup",  SoLocateHighlight  ---
-        "scale8",  SoSeparator  ---
-        "scale8Active",  SoSeparator  ---
-  PVT   "circleFeedbackSep",  SoSeparator  ---
-  PVT   "circleFeedbackTransformSwitch",  SoSwitch  ---
-  PVT   "circleFeedbackAntiSquish",  SoAntiSquish  ---
-  PVT   "circleFeedbackTransform",  SoTransform  ---
-  PVT   "xCircleFeedbackSwitch",  SoSwitch  ---
-        "xCircleFeedback",  SoSeparator  ---
-  PVT   "yCircleFeedbackSwitch",  SoSwitch  ---
-        "yCircleFeedback",  SoSeparator  ---
-  PVT   "zCircleFeedbackSwitch",  SoSwitch  ---
-        "zCircleFeedback",  SoSeparator  ---
-  PVT   "axisFeedbackSep",  SoSeparator  ---
-  PVT   "axisFeedbackLocation",  SoTranslation  ---
-  PVT   "xAxisFeedbackSwitch",  SoSwitch  ---
-        "xAxisFeedbackActive",  SoSeparator  ---
-        "xAxisFeedbackSelect",  SoSeparator  ---
-        "xCrosshairFeedback",  SoSeparator  ---
-  PVT   "yAxisFeedbackSwitch",  SoSwitch  ---
-        "yAxisFeedbackActive",  SoSeparator  ---
-        "yAxisFeedbackSelect",  SoSeparator  ---
-        "yCrosshairFeedback",  SoSeparator  ---
-  PVT   "zAxisFeedbackSwitch",  SoSwitch  ---
-        "zAxisFeedbackActive",  SoSeparator  ---
-        "zAxisFeedbackSelect",  SoSeparator  ---
-        "zCrosshairFeedback",  SoSeparator  ---
-  PVT   "translateBoxFeedbackSep",  SoSeparator  ---
-  PVT   "translateBoxFeedbackSwitch",  SoSwitch  ---
-  PVT   "translateBoxFeedbackRotation",  SoRotation  ---
-        "translateBoxFeedback",  SoSeparator  ---
-  PVT   "scaleBoxFeedbackSwitch",  SoSwitch  ---
-        "scaleBoxFeedback",  SoSeparator  ---
-  PVT   "posXWallFeedbackSwitch",  SoSwitch  ---
-        "posXWallFeedback",  SoSeparator  ---
-        "posXRoundWallFeedback",  SoSeparator  ---
-  PVT   "posYWallFeedbackSwitch",  SoSwitch  ---
-        "posYWallFeedback",  SoSeparator  ---
-        "posYRoundWallFeedback",  SoSeparator  ---
-  PVT   "posZWallFeedbackSwitch",  SoSwitch  ---
-        "posZWallFeedback",  SoSeparator  ---
-        "posZRoundWallFeedback",  SoSeparator  ---
-  PVT   "negXWallFeedbackSwitch",  SoSwitch  ---
-        "negXWallFeedback",  SoSeparator  ---
-        "negXRoundWallFeedback",  SoSeparator  ---
-  PVT   "negYWallFeedbackSwitch",  SoSwitch  ---
-        "negYWallFeedback",  SoSeparator  ---
-        "negYRoundWallFeedback",  SoSeparator  ---
-  PVT   "negZWallFeedbackSwitch",  SoSwitch  ---
-        "negZWallFeedback",  SoSeparator  ---
-        "negZRoundWallFeedback",  SoSeparator  ---
-  PVT   "radialFeedbackSwitch",  SoSwitch  ---
-        "radialFeedback",  SoSeparator  ---
+  CLASS SoTransformer2Dragger
+  PVT   "this",  SoTransformer2Dragger  --- 
+        "callbackList",  SoNodeKitListPart [ SoCallback, SoEventCallback ] 
+  PVT   "topSeparator",  SoSeparator  --- 
+  PVT   "motionMatrix",  SoMatrixTransform  --- 
+        "surroundScale",  SoSurroundScale  --- 
+  PVT   "overallStyle",  SoGroup  --- 
+  PVT   "geomSeparator",  SoSeparator  --- 
+  PVT   "translatorSep",  SoSeparator  --- 
+  PVT   "translator1Switch",  SoSwitch  --- 
+  PVT   "translator1LocateGroup",  SoLocateHighlight  --- 
+        "translator1",  SoSeparator  --- 
+        "translator1Active",  SoSeparator  --- 
+  PVT   "translator2Switch",  SoSwitch  --- 
+  PVT   "translator2LocateGroup",  SoLocateHighlight  --- 
+        "translator2",  SoSeparator  --- 
+        "translator2Active",  SoSeparator  --- 
+  PVT   "translator3Switch",  SoSwitch  --- 
+  PVT   "translator3LocateGroup",  SoLocateHighlight  --- 
+        "translator3",  SoSeparator  --- 
+        "translator3Active",  SoSeparator  --- 
+  PVT   "translator4Switch",  SoSwitch  --- 
+  PVT   "translator4LocateGroup",  SoLocateHighlight  --- 
+        "translator4",  SoSeparator  --- 
+        "translator4Active",  SoSeparator  --- 
+  PVT   "translator5Switch",  SoSwitch  --- 
+  PVT   "translator5LocateGroup",  SoLocateHighlight  --- 
+        "translator5",  SoSeparator  --- 
+        "translator5Active",  SoSeparator  --- 
+  PVT   "translator6Switch",  SoSwitch  --- 
+  PVT   "translator6LocateGroup",  SoLocateHighlight  --- 
+        "translator6",  SoSeparator  --- 
+        "translator6Active",  SoSeparator  --- 
+  PVT   "translateToCenter", SoMatrixTransform  ---
+  PVT   "rotatorSep",  SoSeparator  --- 
+  PVT   "rotator1Switch",  SoSwitch  --- 
+  PVT   "rotator1LocateGroup",  SoLocateHighlight  --- 
+        "rotator1",  SoSeparator  --- 
+        "rotator1Active",  SoSeparator  --- 
+  PVT   "rotator2Switch",  SoSwitch  --- 
+  PVT   "rotator2LocateGroup",  SoLocateHighlight  --- 
+        "rotator2",  SoSeparator  --- 
+        "rotator2Active",  SoSeparator  --- 
+  PVT   "rotator3Switch",  SoSwitch  --- 
+  PVT   "rotator3LocateGroup",  SoLocateHighlight  --- 
+        "rotator3",  SoSeparator  --- 
+        "rotator3Active",  SoSeparator  --- 
+  PVT   "rotator4Switch",  SoSwitch  --- 
+  PVT   "rotator4LocateGroup",  SoLocateHighlight  --- 
+        "rotator4",  SoSeparator  --- 
+        "rotator4Active",  SoSeparator  --- 
+  PVT   "rotator5Switch",  SoSwitch  --- 
+  PVT   "rotator5LocateGroup",  SoLocateHighlight  --- 
+        "rotator5",  SoSeparator  --- 
+        "rotator5Active",  SoSeparator  --- 
+  PVT   "rotator6Switch",  SoSwitch  --- 
+  PVT   "rotator6LocateGroup",  SoLocateHighlight  --- 
+        "rotator6",  SoSeparator  --- 
+        "rotator6Active",  SoSeparator  --- 
+  PVT   "scaleSep",  SoSeparator  --- 
+  PVT   "scale1Switch",  SoSwitch  --- 
+  PVT   "scale1LocateGroup",  SoLocateHighlight  --- 
+        "scale1",  SoSeparator  --- 
+        "scale1Active",  SoSeparator  --- 
+  PVT   "scale2Switch",  SoSwitch  --- 
+  PVT   "scale2LocateGroup",  SoLocateHighlight  --- 
+        "scale2",  SoSeparator  --- 
+        "scale2Active",  SoSeparator  --- 
+  PVT   "scale3Switch",  SoSwitch  --- 
+  PVT   "scale3LocateGroup",  SoLocateHighlight  --- 
+        "scale3",  SoSeparator  --- 
+        "scale3Active",  SoSeparator  --- 
+  PVT   "scale4Switch",  SoSwitch  --- 
+  PVT   "scale4LocateGroup",  SoLocateHighlight  --- 
+        "scale4",  SoSeparator  --- 
+        "scale4Active",  SoSeparator  --- 
+  PVT   "scale5Switch",  SoSwitch  --- 
+  PVT   "scale5LocateGroup",  SoLocateHighlight  --- 
+        "scale5",  SoSeparator  --- 
+        "scale5Active",  SoSeparator  --- 
+  PVT   "scale6Switch",  SoSwitch  --- 
+  PVT   "scale6LocateGroup",  SoLocateHighlight  --- 
+        "scale6",  SoSeparator  --- 
+        "scale6Active",  SoSeparator  --- 
+  PVT   "scale7Switch",  SoSwitch  --- 
+  PVT   "scale7LocateGroup",  SoLocateHighlight  --- 
+        "scale7",  SoSeparator  --- 
+        "scale7Active",  SoSeparator  --- 
+  PVT   "scale8Switch",  SoSwitch  --- 
+  PVT   "scale8LocateGroup",  SoLocateHighlight  --- 
+        "scale8",  SoSeparator  --- 
+        "scale8Active",  SoSeparator  --- 
+  PVT   "circleFeedbackSep",  SoSeparator  --- 
+  PVT   "circleFeedbackTransformSwitch",  SoSwitch  --- 
+  PVT   "circleFeedbackAntiSquish",  SoAntiSquish  --- 
+  PVT   "circleFeedbackTransform",  SoTransform  --- 
+  PVT   "xCircleFeedbackSwitch",  SoSwitch  --- 
+        "xCircleFeedback",  SoSeparator  --- 
+  PVT   "yCircleFeedbackSwitch",  SoSwitch  --- 
+        "yCircleFeedback",  SoSeparator  --- 
+  PVT   "zCircleFeedbackSwitch",  SoSwitch  --- 
+        "zCircleFeedback",  SoSeparator  --- 
+  PVT   "axisFeedbackSep",  SoSeparator  --- 
+  PVT   "axisFeedbackLocation",  SoTranslation  --- 
+  PVT   "xAxisFeedbackSwitch",  SoSwitch  --- 
+        "xAxisFeedbackActive",  SoSeparator  --- 
+        "xAxisFeedbackSelect",  SoSeparator  --- 
+        "xCrosshairFeedback",  SoSeparator  --- 
+  PVT   "yAxisFeedbackSwitch",  SoSwitch  --- 
+        "yAxisFeedbackActive",  SoSeparator  --- 
+        "yAxisFeedbackSelect",  SoSeparator  --- 
+        "yCrosshairFeedback",  SoSeparator  --- 
+  PVT   "zAxisFeedbackSwitch",  SoSwitch  --- 
+        "zAxisFeedbackActive",  SoSeparator  --- 
+        "zAxisFeedbackSelect",  SoSeparator  --- 
+        "zCrosshairFeedback",  SoSeparator  --- 
+  PVT   "translateBoxFeedbackSep",  SoSeparator  --- 
+  PVT   "translateBoxFeedbackSwitch",  SoSwitch  --- 
+  PVT   "translateBoxFeedbackRotation",  SoRotation  --- 
+        "translateBoxFeedback",  SoSeparator  --- 
+  PVT   "scaleBoxFeedbackSwitch",  SoSwitch  --- 
+        "scaleBoxFeedback",  SoSeparator  --- 
+  PVT   "posXWallFeedbackSwitch",  SoSwitch  --- 
+        "posXWallFeedback",  SoSeparator  --- 
+        "posXRoundWallFeedback",  SoSeparator  --- 
+  PVT   "posYWallFeedbackSwitch",  SoSwitch  --- 
+        "posYWallFeedback",  SoSeparator  --- 
+        "posYRoundWallFeedback",  SoSeparator  --- 
+  PVT   "posZWallFeedbackSwitch",  SoSwitch  --- 
+        "posZWallFeedback",  SoSeparator  --- 
+        "posZRoundWallFeedback",  SoSeparator  --- 
+  PVT   "negXWallFeedbackSwitch",  SoSwitch  --- 
+        "negXWallFeedback",  SoSeparator  --- 
+        "negXRoundWallFeedback",  SoSeparator  --- 
+  PVT   "negYWallFeedbackSwitch",  SoSwitch  --- 
+        "negYWallFeedback",  SoSeparator  --- 
+        "negYRoundWallFeedback",  SoSeparator  --- 
+  PVT   "negZWallFeedbackSwitch",  SoSwitch  --- 
+        "negZWallFeedback",  SoSeparator  --- 
+        "negZRoundWallFeedback",  SoSeparator  --- 
+  PVT   "radialFeedbackSwitch",  SoSwitch  --- 
+        "radialFeedback",  SoSeparator  --- 
   \endverbatim
 
   \NODEKIT_POST_TABLE
 */
-SoTransformerDragger::SoTransformerDragger(void)
+SoTransformer2Dragger::SoTransformer2Dragger(void)
 {
-  SO_KIT_INTERNAL_CONSTRUCTOR(SoTransformerDragger);
+  THIS = new SoTransformer2DraggerP;
+
+  SO_KIT_INTERNAL_CONSTRUCTOR(SoTransformer2Dragger);
 
   // split-up to avoid one huge method
   this->build_catalog1();
@@ -713,13 +701,14 @@ SoTransformerDragger::SoTransformerDragger(void)
 
   if (SO_KIT_IS_FIRST_INSTANCE()) {
     SoInteractionKit::readDefaultParts("transformerDragger.iv",
-                                       TRANSFORMERDRAGGER_draggergeometry,
-                                       static_cast<int>(strlen(TRANSFORMERDRAGGER_draggergeometry)));
+                                       TRANSFORMER2DRAGGER_draggergeometry,
+                                       (int)strlen(TRANSFORMER2DRAGGER_draggergeometry));
   }
 
   SO_KIT_ADD_FIELD(rotation, (SbRotation(SbVec3f(0.0f, 0.0f, 1.0f), 0.0f)));
   SO_KIT_ADD_FIELD(translation, (0.0f, 0.0f, 0.0f));
   SO_KIT_ADD_FIELD(scaleFactor, (1.0f, 1.0f, 1.0f));
+  SO_KIT_ADD_FIELD(center, (0.0f, 0.0f, 0.0f));
   // FIXME: it doesn't look like this field is actually used or set
   // anywhere else but here. Investigate. 20011208 mortene.
   SO_KIT_ADD_FIELD(minDiscRotDot, (0.025f));
@@ -797,32 +786,34 @@ SoTransformerDragger::SoTransformerDragger(void)
   this->setPartAsDefault("negZRoundWallFeedback", "transformerNegZRoundWallFeedback");
 
   this->state = INACTIVE;
-  PRIVATE(this)->constraintState = CONSTRAINT_OFF;
+  THIS->constraintState = CONSTRAINT_OFF;
   // FIXME: according to SGI classdoc, this flag is supposed to be
   // default TRUE?  Investigate. 20011208 mortene.
-  PRIVATE(this)->locateHighlighting = FALSE;
-  PRIVATE(this)->whatkind = WHATKIND_NONE;
-  PRIVATE(this)->whatnum = -1;
+  THIS->locateHighlighting = FALSE;
+  THIS->whatkind = WHATKIND_NONE;
+  THIS->whatnum = -1;
 
   this->setAllPartSwitches(0, 0, 0);
 
-  this->addStartCallback(SoTransformerDragger::startCB);
-  this->addMotionCallback(SoTransformerDragger::motionCB);
-  this->addFinishCallback(SoTransformerDragger::finishCB);
-  this->addValueChangedCallback(SoTransformerDragger::valueChangedCB);
-  this->addOtherEventCallback(SoTransformerDragger::metaKeyChangeCB);
+  this->addStartCallback(SoTransformer2Dragger::startCB);
+  this->addMotionCallback(SoTransformer2Dragger::motionCB);
+  this->addFinishCallback(SoTransformer2Dragger::finishCB);
+  this->addValueChangedCallback(SoTransformer2Dragger::valueChangedCB);
+  this->addOtherEventCallback(SoTransformer2Dragger::metaKeyChangeCB);
 
   this->planeProj = new SbPlaneProjector;
   this->lineProj = new SbLineProjector;
   this->sphereProj = new SbSphereSectionProjector;
   this->cylProj = new SbCylinderPlaneProjector;
 
-  this->translFieldSensor = new SoFieldSensor(SoTransformerDragger::fieldSensorCB, this);
+  this->translFieldSensor = new SoFieldSensor(SoTransformer2Dragger::fieldSensorCB, this);
   this->translFieldSensor->setPriority(0);
-  this->scaleFieldSensor = new SoFieldSensor(SoTransformerDragger::fieldSensorCB, this);
+  this->scaleFieldSensor = new SoFieldSensor(SoTransformer2Dragger::fieldSensorCB, this);
   this->scaleFieldSensor->setPriority(0);
-  this->rotateFieldSensor = new SoFieldSensor(SoTransformerDragger::fieldSensorCB, this);
+  this->rotateFieldSensor = new SoFieldSensor(SoTransformer2Dragger::fieldSensorCB, this);
   this->rotateFieldSensor->setPriority(0);
+  this->centerFieldSensor = new SoFieldSensor(SoTransformer2Dragger::fieldSensorCB, this);
+  this->centerFieldSensor->setPriority(0);
 
   this->setUpConnections(TRUE, TRUE);
 
@@ -847,28 +838,26 @@ SoTransformerDragger::SoTransformerDragger(void)
   counted and automatically destroyed when their reference count goes
   to 0.)
  */
-SoTransformerDragger::~SoTransformerDragger()
+SoTransformer2Dragger::~SoTransformer2Dragger()
 {
-  delete this->planeProj;
-  delete this->lineProj;
-  delete this->sphereProj;
-  delete this->cylProj;
-
   delete this->translFieldSensor;
   delete this->scaleFieldSensor;
   delete this->rotateFieldSensor;
+  delete this->centerFieldSensor;
+
+  delete THIS;
 }
 
 // Doc in super.
 SbBool
-SoTransformerDragger::setUpConnections(SbBool onoff, SbBool doitalways)
+SoTransformer2Dragger::setUpConnections(SbBool onoff, SbBool doitalways)
 {
   if (!doitalways && this->connectionsSetUp == onoff) return onoff;
 
   if (onoff) {
     inherited::setUpConnections(onoff, doitalways);
 
-    SoTransformerDragger::fieldSensorCB(this, NULL);
+    SoTransformer2Dragger::fieldSensorCB(this, NULL);
 
     if (this->translFieldSensor->getAttachedField() != &this->translation) {
       this->translFieldSensor->attach(&this->translation);
@@ -878,6 +867,9 @@ SoTransformerDragger::setUpConnections(SbBool onoff, SbBool doitalways)
     }
     if (this->rotateFieldSensor->getAttachedField() != &this->rotation) {
       this->rotateFieldSensor->attach(&this->rotation);
+    }
+	if (this->centerFieldSensor->getAttachedField() != &this->center) {
+      this->centerFieldSensor->attach(&this->center);
     }
   }
   else {
@@ -889,6 +881,9 @@ SoTransformerDragger::setUpConnections(SbBool onoff, SbBool doitalways)
     }
     if (this->rotateFieldSensor->getAttachedField() != NULL) {
       this->rotateFieldSensor->detach();
+    }
+	if (this->centerFieldSensor->getAttachedField() != NULL) {
+      this->centerFieldSensor->detach();
     }
     inherited::setUpConnections(onoff, doitalways);
   }
@@ -903,7 +898,7 @@ SoTransformerDragger::setUpConnections(SbBool onoff, SbBool doitalways)
 // FIXME: should collect these methods in a common method visible to
 // all draggers implementing the exact same functionality. 20010826 mortene.
 static void
-SoTransformerDragger_set_default(SoDragger * dragger, const char * fmt,
+SoTransformer2Dragger_set_default(SoDragger * dragger, const char * fmt,
                                  int minval, int maxval)
 {
   SbString str;
@@ -917,7 +912,7 @@ SoTransformerDragger_set_default(SoDragger * dragger, const char * fmt,
 
 // Doc in superclass.
 void
-SoTransformerDragger::setDefaultOnNonWritingFields(void)
+SoTransformer2Dragger::setDefaultOnNonWritingFields(void)
 {
   this->surroundScale.setDefault(TRUE);
   this->circleFeedbackAntiSquish.setDefault(TRUE);
@@ -925,32 +920,73 @@ SoTransformerDragger::setDefaultOnNonWritingFields(void)
   this->axisFeedbackLocation.setDefault(TRUE);
   this->translateBoxFeedbackRotation.setDefault(TRUE);
 
-  SoTransformerDragger_set_default(this, "translator%dLocateGroup", 1, 6);
-  SoTransformerDragger_set_default(this, "rotator%dLocateGroup", 1, 6);
-  SoTransformerDragger_set_default(this, "scale%dLocateGroup", 1, 6);
+  SoTransformer2Dragger_set_default(this, "translator%dLocateGroup", 1, 6);
+  SoTransformer2Dragger_set_default(this, "rotator%dLocateGroup", 1, 6);
+  SoTransformer2Dragger_set_default(this, "scale%dLocateGroup", 1, 6);
 
   inherited::setDefaultOnNonWritingFields();
 }
 
 /*! \COININTERNAL */
 void
-SoTransformerDragger::fieldSensorCB(void *d, SoSensor *)
+SoTransformer2Dragger::fieldSensorCB(void *d, SoSensor *inSensor)
 {
-  SoTransformerDragger * thisp = THISP(d);
-  SbMatrix matrix = thisp->getMotionMatrix();
-  thisp->workFieldsIntoTransform(matrix);
-  thisp->setMotionMatrix(matrix);
+  SoTransformer2Dragger *thisp = (SoTransformer2Dragger*)d;
+
+  SoField *trigF = NULL;
+  if ( inSensor )
+      trigF = ((SoDataSensor *)inSensor)->getTriggerField();
+
+  // If inSensor is NULL or the trigger field is NULL, we will
+  // do both the matrix and center stuff, since we don't know what changed.
+  SbBool doMatrix = TRUE;
+  SbBool doCenter = TRUE;
+
+  // But if this is invoked by a sensor with a trigger field, 
+  // we can do different things if it was the center 
+  // or the rotation fields that triggered.
+  if ( trigF )
+  {
+	if ( trigF == &thisp->rotation    ||
+	     trigF == &thisp->translation ||
+	     trigF == &thisp->scaleFactor )
+	  doCenter = FALSE;
+
+	if ( trigF == &thisp->center )
+	  doMatrix = FALSE;
+  }
+
+  if ( doCenter )
+  {
+	// Build a matrix to translate the origin of the ball
+	// to the transformed center...
+	thisp->recalcTranslateToCenter();
+
+	// We need to specifically tell the dragger to invoke the
+	// value changed callbacks, since only calling setMotionMatrix
+	// automatically does this.
+	if ( doMatrix == FALSE )
+	  thisp->valueChanged();
+  }
+
+  if ( doMatrix )
+  {
+    SbMatrix matrix = thisp->getMotionMatrix();
+    thisp->workFieldsIntoTransform(matrix);
+    thisp->setMotionMatrix(matrix);
+  }
 }
 
 /*! \COININTERNAL */
 void
-SoTransformerDragger::valueChangedCB(void *, SoDragger * d)
+SoTransformer2Dragger::valueChangedCB(void *, SoDragger * d)
 {
-  SoTransformerDragger * thisp = THISP(d);
+  SoTransformer2Dragger *thisp = (SoTransformer2Dragger*)d;
   SbMatrix matrix = thisp->getMotionMatrix();
   SbVec3f trans, scale;
   SbRotation rot, scaleOrient;
-  matrix.getTransform(trans, rot, scale, scaleOrient);
+  const SbVec3f &center = thisp->center.getValue();
+  matrix.getTransform(trans, rot, scale, scaleOrient, center);
 
   thisp->translFieldSensor->detach();
   if (thisp->translation.getValue() != trans)
@@ -967,53 +1003,55 @@ SoTransformerDragger::valueChangedCB(void *, SoDragger * d)
     thisp->rotation = rot;
   }
   thisp->rotateFieldSensor->attach(&thisp->rotation);
+
+  // Do nothing with the centerFieldSensor.
 }
 
 /*!
   Returns an indicator for the current operation executed on the
-  dragger by the end-user -- or SoTransformerDragger::INACTIVE if
+  dragger by the end-user -- or SoTransformer2Dragger::INACTIVE if
   none.
 */
-SoTransformerDragger::State
-SoTransformerDragger::getCurrentState(void)
+SoTransformer2Dragger::State
+SoTransformer2Dragger::getCurrentState(void)
 {
   return this->state;
 }
 
 void
-SoTransformerDragger::unsquishKnobs(void)
+SoTransformer2Dragger::unsquishKnobs(void)
 {
   this->updateAntiSquishList();
 }
 
 SbBool
-SoTransformerDragger::isLocateHighlighting(void)
+SoTransformer2Dragger::isLocateHighlighting(void)
 {
-  return PRIVATE(this)->locateHighlighting;
+  return THIS->locateHighlighting;
 }
 
 void
-SoTransformerDragger::setLocateHighlighting(SbBool onoff)
+SoTransformer2Dragger::setLocateHighlighting(SbBool onoff)
 {
   // FIXME: I can't see that this flag is actually used anywhere..?
   // 20011208 mortene.
-  PRIVATE(this)->locateHighlighting = onoff;
+  THIS->locateHighlighting = onoff;
 }
 
 void
-SoTransformerDragger::setColinearThreshold(int newval)
+SoTransformer2Dragger::setColinearThreshold(int newval)
 {
-  SoTransformerDraggerP::colinearThreshold = newval;
+  SoTransformer2DraggerP::colinearThreshold = newval;
 }
 
 int
-SoTransformerDragger::getColinearThreshold(void)
+SoTransformer2Dragger::getColinearThreshold(void)
 {
-  return SoTransformerDraggerP::colinearThreshold;
+  return SoTransformer2DraggerP::colinearThreshold;
 }
 
 SbVec3f
-SoTransformerDragger::getBoxPointInWorldSpace(const SbVec3f & pointonunitbox)
+SoTransformer2Dragger::getBoxPointInWorldSpace(const SbVec3f & pointonunitbox)
 {
   SbMatrix mat, inv;
   this->getSurroundScaleMatrices(mat, inv);
@@ -1024,7 +1062,7 @@ SoTransformerDragger::getBoxPointInWorldSpace(const SbVec3f & pointonunitbox)
 }
 
 SbVec3f
-SoTransformerDragger::getBoxDirInWorldSpace(const SbVec3f & dironunitbox)
+SoTransformer2Dragger::getBoxDirInWorldSpace(const SbVec3f & dironunitbox)
 {
   SbMatrix mat, inv;
   this->getSurroundScaleMatrices(mat, inv);
@@ -1035,7 +1073,7 @@ SoTransformerDragger::getBoxDirInWorldSpace(const SbVec3f & dironunitbox)
 }
 
 SbVec3f
-SoTransformerDragger::getWorldPointInBoxSpace(const SbVec3f & pointinworldspace)
+SoTransformer2Dragger::getWorldPointInBoxSpace(const SbVec3f & pointinworldspace)
 {
   SbMatrix mat, inv;
   this->getSurroundScaleMatrices(mat, inv);
@@ -1046,7 +1084,7 @@ SoTransformerDragger::getWorldPointInBoxSpace(const SbVec3f & pointinworldspace)
 }
 
 SbVec2f
-SoTransformerDragger::getWorldPointInPixelSpace(const SbVec3f & thepoint)
+SoTransformer2Dragger::getWorldPointInPixelSpace(const SbVec3f & thepoint)
 {
   SbVec3f screenpt;
   this->getViewVolume().projectToScreen(thepoint, screenpt);
@@ -1054,48 +1092,48 @@ SoTransformerDragger::getWorldPointInPixelSpace(const SbVec3f & thepoint)
 }
 
 SbVec3f
-SoTransformerDragger::getInteractiveCenterInBoxSpace(void)
+SoTransformer2Dragger::getInteractiveCenterInBoxSpace(void)
 {
-  if (PRIVATE(this)->ctrlDown) return PRIVATE(this)->ctrlOffset;
+  if (THIS->ctrlDown) return THIS->ctrlOffset;
   else return SbVec3f(0.0f, 0.0f, 0.0f);
 }
 
 /*! \COININTERNAL */
 void
-SoTransformerDragger::startCB(void *, SoDragger * d)
+SoTransformer2Dragger::startCB(void *, SoDragger * d)
 {
-  SoTransformerDragger * thisp = THISP(d);
+  SoTransformer2Dragger *thisp = (SoTransformer2Dragger*)d;
   thisp->dragStart();
 }
 
 /*! \COININTERNAL */
 void
-SoTransformerDragger::motionCB(void *, SoDragger * d)
+SoTransformer2Dragger::motionCB(void *, SoDragger * d)
 {
-  SoTransformerDragger * thisp = THISP(d);
+  SoTransformer2Dragger *thisp = (SoTransformer2Dragger*)d;
   thisp->drag();
 }
 
 /*! \COININTERNAL */
 void
-SoTransformerDragger::finishCB(void *, SoDragger * d)
+SoTransformer2Dragger::finishCB(void *, SoDragger * d)
 {
-  SoTransformerDragger * thisp = THISP(d);
+  SoTransformer2Dragger *thisp = (SoTransformer2Dragger*)d;
   thisp->dragFinish();
 }
 
 /*! \COININTERNAL */
 void
-SoTransformerDragger::metaKeyChangeCB(void *, SoDragger *d)
+SoTransformer2Dragger::metaKeyChangeCB(void *, SoDragger *d)
 {
-  SoTransformerDragger * thisp = THISP(d);
+  SoTransformer2Dragger *thisp = (SoTransformer2Dragger*)d;
   if (!thisp->isActive.getValue()) return;
 
   const SoEvent *event = thisp->getEvent();
-  if (PRIVATE(thisp)->shiftDown != event->wasShiftDown()) {
+  if (THISP->shiftDown != event->wasShiftDown()) {
     thisp->drag();
   }
-  if (PRIVATE(thisp)->ctrlDown != event->wasCtrlDown()) {
+  if (THISP->ctrlDown != event->wasCtrlDown()) {
     thisp->drag();
   }
 }
@@ -1104,9 +1142,8 @@ SoTransformerDragger::metaKeyChangeCB(void *, SoDragger *d)
 static void
 invalidate_surroundscale(SoBaseKit * kit)
 {
-  SoSurroundScale * ss = coin_safe_cast<SoSurroundScale *>(
-    kit->getPart("surroundScale", FALSE)
-    );
+  SoSurroundScale * ss = (SoSurroundScale*)
+    kit->getPart("surroundScale", FALSE);
   if (ss) ss->invalidate();
 }
 
@@ -1114,7 +1151,7 @@ invalidate_surroundscale(SoBaseKit * kit)
   Called when dragger is selected (picked) by the user.
 */
 void
-SoTransformerDragger::dragStart(void)
+SoTransformer2Dragger::dragStart(void)
 {
   invalidate_surroundscale(this);
 
@@ -1137,12 +1174,12 @@ SoTransformerDragger::dragStart(void)
     }
     if (i <= 6) {
       found = TRUE;
-      this->state = static_cast<State>((int(RIT_TRANSLATE) + (i-1)));
-      PRIVATE(this)->whatkind = WHATKIND_TRANSLATE;
-      PRIVATE(this)->whatnum = i;
-      if (i <= 2) PRIVATE(this)->dimension = 1;
-      else if (i <= 4) PRIVATE(this)->dimension = 0;
-      else PRIVATE(this)->dimension = 2;
+      this->state = (State)(int(RIT_TRANSLATE) + (i-1));
+      THIS->whatkind = WHATKIND_TRANSLATE;
+      THIS->whatnum = i;
+      if (i <= 2) THIS->dimension = 1;
+      else if (i <= 4) THIS->dimension = 0;
+      else THIS->dimension = 2;
     }
   }
 
@@ -1154,12 +1191,12 @@ SoTransformerDragger::dragStart(void)
     }
     if (i <= 6) {
       found = TRUE;
-      this->state = static_cast<State>((int(RIT_X_ROTATE) + (i-1)));
-      PRIVATE(this)->whatkind = WHATKIND_ROTATE;
-      PRIVATE(this)->whatnum = i;
-      if (i <= 2) PRIVATE(this)->dimension = 1;
-      else if (i <= 4) PRIVATE(this)->dimension = 0;
-      else PRIVATE(this)->dimension = 2;
+      this->state = (State)(int(RIT_X_ROTATE) + (i-1));
+      THIS->whatkind = WHATKIND_ROTATE;
+      THIS->whatnum = i;
+      if (i <= 2) THIS->dimension = 1;
+      else if (i <= 4) THIS->dimension = 0;
+      else THIS->dimension = 2;
     }
   }
   if (!found) {
@@ -1170,27 +1207,27 @@ SoTransformerDragger::dragStart(void)
     }
     if (i <= 8) {
       found = TRUE;
-      this->state = static_cast<State>((int(PX_PY_PZ_3D_SCALE) + (i-1)));
-      PRIVATE(this)->whatkind = WHATKIND_SCALE;
-      PRIVATE(this)->whatnum = i;
+      this->state = (State) (int(PX_PY_PZ_3D_SCALE) + (i-1));
+      THIS->whatkind = WHATKIND_SCALE;
+      THIS->whatnum = i;
     }
   }
   assert(found);
 
-  PRIVATE(this)->ctrlDown = event->wasCtrlDown();
-  PRIVATE(this)->shiftDown = event->wasShiftDown();
-  PRIVATE(this)->ctrlOffset = this->calcCtrlOffset(startpt);
+  THIS->ctrlDown = event->wasCtrlDown();
+  THIS->shiftDown = event->wasShiftDown();
+  THIS->ctrlOffset = this->calcCtrlOffset(startpt);
 
-  switch(PRIVATE(this)->whatkind) {
+  switch(THIS->whatkind) {
   case WHATKIND_TRANSLATE:
     {
       SbVec3f n(0.0f, 0.0f, 0.0f);
-      n[PRIVATE(this)->dimension] = 1.0f;
+      n[THIS->dimension] = 1.0f;
       this->planeProj->setPlane(SbPlane(n, startpt));
       this->lineProj->setLine(SbLine(startpt, startpt + n));
-      PRIVATE(this)->constraintState = CONSTRAINT_OFF;
-      if (PRIVATE(this)->shiftDown) {
-        PRIVATE(this)->constraintState = CONSTRAINT_WAIT;
+      THIS->constraintState = CONSTRAINT_OFF;
+      if (THIS->shiftDown) {
+        THIS->constraintState = CONSTRAINT_WAIT;
       }
       SbLine myline(SbVec3f(0.0f, 0.0f, 0.0f), n);
       SoTranslation *t = SO_GET_ANY_PART(this, "axisFeedbackLocation", SoTranslation);
@@ -1198,12 +1235,12 @@ SoTransformerDragger::dragStart(void)
 
       this->setAllPartSwitches(SO_SWITCH_NONE, SO_SWITCH_NONE, SO_SWITCH_NONE);
       SbString str;
-      str.sprintf("translator%dSwitch", PRIVATE(this)->whatnum);
+      str.sprintf("translator%dSwitch", THIS->whatnum);
       this->setSwitchValue(str.getString(), 1);
       this->setSwitchValue("translateBoxFeedbackSwitch", SO_SWITCH_ALL);
-      SoRotation * feedbackrot = coin_assert_cast<SoRotation *>(this->getAnyPart("translateBoxFeedbackRotation", TRUE));
+      SoRotation * feedbackrot = (SoRotation*) this->getAnyPart("translateBoxFeedbackRotation", TRUE);
       assert(feedbackrot);
-      switch (PRIVATE(this)->whatnum) {
+      switch (THIS->whatnum) {
       default:
       case 1:
         feedbackrot->rotation = SbRotation::identity();
@@ -1232,13 +1269,13 @@ SoTransformerDragger::dragStart(void)
       SoTranslation *t = SO_GET_ANY_PART(this, "axisFeedbackLocation", SoTranslation);
       t->translation = startpt;
       this->lineProj->setLine(SbLine(SbVec3f(0.0f, 0.0f, 0.0f), startpt));
-      PRIVATE(this)->constraintState = CONSTRAINT_OFF;
-      if (PRIVATE(this)->shiftDown) {
-        PRIVATE(this)->constraintState = CONSTRAINT_WAIT;
+      THIS->constraintState = CONSTRAINT_OFF;
+      if (THIS->shiftDown) {
+        THIS->constraintState = CONSTRAINT_WAIT;
       }
 
       SbString str;
-      str.sprintf("scale%dSwitch", PRIVATE(this)->whatnum);
+      str.sprintf("scale%dSwitch", THIS->whatnum);
       this->setAllPartSwitches(0, SO_SWITCH_NONE, SO_SWITCH_NONE);
       this->setSwitchValue(str.getString(), 1);
       (void) this->setDynamicScaleSwitches(event);
@@ -1266,19 +1303,19 @@ SoTransformerDragger::dragStart(void)
       }
 
       SbVec3f projpt = this->sphereProj->project(this->getNormalizedLocaterPosition());
-      this->getWorkingToWorldMatrix().multVecMatrix(projpt, PRIVATE(this)->prevWorldHitPt);
-      PRIVATE(this)->prevMotionMatrix = this->getMotionMatrix();
+      this->getWorkingToWorldMatrix().multVecMatrix(projpt, THIS->prevWorldHitPt);
+      THIS->prevMotionMatrix = this->getMotionMatrix();
 
-      PRIVATE(this)->constraintState = CONSTRAINT_OFF;
-      if (!PRIVATE(this)->shiftDown) {
-        PRIVATE(this)->constraintState = CONSTRAINT_WAIT;
+      THIS->constraintState = CONSTRAINT_OFF;
+      if (!THIS->shiftDown) {
+        THIS->constraintState = CONSTRAINT_WAIT;
         // this plane is only used to find constraint direction
         this->planeProj->setPlane(SbPlane(startpt, startpt));
-        PRIVATE(this)->normalizedStartLocaterPosition = this->getNormalizedLocaterPosition();
+        THIS->normalizedStartLocaterPosition = this->getNormalizedLocaterPosition();
       }
       SoAntiSquish *squish = SO_GET_ANY_PART(this, "circleFeedbackAntiSquish", SoAntiSquish);
       SoAntiSquish::Sizing sizing;
-      switch (PRIVATE(this)->dimension) {
+      switch (THIS->dimension) {
       case 0: sizing = SoAntiSquish::X; break;
       case 1: sizing = SoAntiSquish::Y; break;
       case 2: sizing = SoAntiSquish::Z; break;
@@ -1300,9 +1337,9 @@ SoTransformerDragger::dragStart(void)
   Called when user drags the mouse after picking the dragger.
 */
 void
-SoTransformerDragger::drag(void)
+SoTransformer2Dragger::drag(void)
 {
-  switch(PRIVATE(this)->whatkind) {
+  switch(THIS->whatkind) {
   case WHATKIND_SCALE:
     this->dragScale();
     break;
@@ -1319,7 +1356,7 @@ SoTransformerDragger::drag(void)
 }
 
 void
-SoTransformerDragger::dragTranslate()
+SoTransformer2Dragger::dragTranslate()
 {
   SbVec3f startpt = this->getLocalStartingPoint();
   startpt = this->localToWorking(startpt);
@@ -1329,12 +1366,12 @@ SoTransformerDragger::dragTranslate()
   SbVec3f projpt = this->planeProj->project(this->getNormalizedLocaterPosition());
 
   const SoEvent *event = this->getEvent();
-  if (event->wasShiftDown() && PRIVATE(this)->constraintState == CONSTRAINT_OFF) {
-    PRIVATE(this)->constraintState = CONSTRAINT_WAIT;
+  if (event->wasShiftDown() && THIS->constraintState == CONSTRAINT_OFF) {
+    THIS->constraintState = CONSTRAINT_WAIT;
     this->setStartLocaterPosition(event->getPosition());
   }
-  else if (!event->wasShiftDown() && PRIVATE(this)->constraintState != CONSTRAINT_OFF) {
-    PRIVATE(this)->constraintState = CONSTRAINT_OFF;
+  else if (!event->wasShiftDown() && THIS->constraintState != CONSTRAINT_OFF) {
+    THIS->constraintState = CONSTRAINT_OFF;
   }
 
   // Every time something changes (shift or ctrl is pressed), resave
@@ -1343,7 +1380,7 @@ SoTransformerDragger::dragTranslate()
   if (this->setDynamicTranslatorSwitches(event)) {
     this->saveStartParameters();
     SbVec3f n(0.0f, 0.0f, 0.0f);
-    n[PRIVATE(this)->dimension] = 1.0f;
+    n[THIS->dimension] = 1.0f;
     this->lineProj->setLine(SbLine(projpt, projpt+n));
     SbVec3f worldpt;
     this->getWorkingToWorldMatrix().multVecMatrix(projpt, worldpt);
@@ -1352,7 +1389,7 @@ SoTransformerDragger::dragTranslate()
   }
 
   SbVec3f motion;
-  if (PRIVATE(this)->ctrlDown) {
+  if (THIS->ctrlDown) {
     this->lineProj->setViewVolume(this->getViewVolume());
     this->lineProj->setWorkingSpace(this->getWorkingToWorldMatrix());
     projpt = this->lineProj->project(this->getNormalizedLocaterPosition());
@@ -1361,7 +1398,7 @@ SoTransformerDragger::dragTranslate()
   else {
     motion = projpt - startpt;
 
-    switch(PRIVATE(this)->constraintState) {
+    switch(THIS->constraintState) {
     case CONSTRAINT_OFF:
       break;
     case CONSTRAINT_WAIT:
@@ -1380,7 +1417,7 @@ SoTransformerDragger::dragTranslate()
         motion[(biggest + 1) % 3] = 0.0f;
         motion[(biggest + 2) % 3] = 0.0f;
 
-        PRIVATE(this)->constraintState = CONSTRAINT_X + biggest;
+        THIS->constraintState = CONSTRAINT_X + biggest;
       }
       else {
         return;
@@ -1408,7 +1445,7 @@ SoTransformerDragger::dragTranslate()
 }
 
 void
-SoTransformerDragger::dragScale()
+SoTransformer2Dragger::dragScale()
 {
   SbVec3f startpt = this->getLocalStartingPoint();
   startpt = this->localToWorking(startpt);
@@ -1418,36 +1455,34 @@ SoTransformerDragger::dragScale()
   SbVec3f projpt = this->lineProj->project(this->getNormalizedLocaterPosition());
   const SoEvent *event = this->getEvent();
 
-  if (event->wasShiftDown() && PRIVATE(this)->constraintState == CONSTRAINT_OFF) {
-    PRIVATE(this)->constraintState = CONSTRAINT_WAIT;
+  if (event->wasShiftDown() && THIS->constraintState == CONSTRAINT_OFF) {
+    THIS->constraintState = CONSTRAINT_WAIT;
     this->setStartLocaterPosition(event->getPosition());
   }
-  else if (!event->wasShiftDown() && PRIVATE(this)->constraintState != CONSTRAINT_OFF) {
+  else if (!event->wasShiftDown() && THIS->constraintState != CONSTRAINT_OFF) {
     this->saveStartParameters();
-    PRIVATE(this)->constraintState = CONSTRAINT_OFF;
+    THIS->constraintState = CONSTRAINT_OFF;
     this->lineProj->setLine(SbLine(SbVec3f(0.0f, 0.0f, 0.0f), projpt));
-    PRIVATE(this)->ctrlOffset = this->calcCtrlOffset(projpt);
+    THIS->ctrlOffset = this->calcCtrlOffset(projpt);
     startpt = projpt;
     SbVec3f worldpt;
     this->getWorkingToWorldMatrix().multVecMatrix(projpt, worldpt);
     this->setStartingPoint(worldpt);
   }
 
-  if (PRIVATE(this)->constraintState == CONSTRAINT_WAIT && this->isAdequateConstraintMotion()) {
+  if (THIS->constraintState == CONSTRAINT_WAIT && this->isAdequateConstraintMotion()) {
     // detect which dimension user has moved mouse the most. Done by projecting
     // mouse positions onto the near plane, finding that world vector, and
     // transforming that world vector into working space.
     const SbViewVolume &vv = this->getViewVolume();
     const SbViewportRegion &vp = this->getViewportRegion();
     SbVec2s move = this->getLocaterPosition() - this->getStartLocaterPosition();
-    SbVec2f normmove(
-                   static_cast<float>(move[0])/static_cast<float>(vp.getViewportSizePixels()[0]),
-                     static_cast<float>(move[1])/static_cast<float>(vp.getViewportSizePixels()[1])
-                   );
+    SbVec2f normmove((float)move[0]/(float)vp.getViewportSizePixels()[0],
+                     (float)move[1]/(float)vp.getViewportSizePixels()[1]);
     SbVec3f tmp = vv.getPlanePoint(vv.getNearDist(), SbVec2f(0.5f, 0.5f));
     SbVec3f dir = vv.getPlanePoint(vv.getNearDist(), SbVec2f(0.5f, 0.5f) + normmove);
     dir -= tmp;
-    (void) dir.normalize(); // ok if null (no movement)
+    dir.normalize();
     this->getWorldToWorkingMatrix().multDirMatrix(dir, dir);
     int biggest = 0;
     double bigval = fabs(dir[0]);
@@ -1461,14 +1496,14 @@ SoTransformerDragger::dragScale()
     SbVec3f n(0.0f, 0.0f, 0.0f);
     n[biggest] = 1.0f;
 
-    PRIVATE(this)->constraintState = CONSTRAINT_X + biggest;
+    THIS->constraintState = CONSTRAINT_X + biggest;
 
     this->saveStartParameters();
     this->lineProj->setLine(SbLine(projpt, projpt+n));
     startpt = projpt;
     projpt[(biggest+1)%3] = 0.0f;
     projpt[(biggest+2)%3] = 0.0f;
-    PRIVATE(this)->ctrlOffset = this->calcCtrlOffset(projpt);
+    THIS->ctrlOffset = this->calcCtrlOffset(projpt);
     projpt = startpt;
     SbVec3f worldpt;
     this->getWorkingToWorldMatrix().multVecMatrix(projpt, worldpt);
@@ -1489,10 +1524,10 @@ SoTransformerDragger::dragScale()
     this->setStartingPoint(worldpt);
   }
 
-  if (PRIVATE(this)->constraintState == CONSTRAINT_WAIT) return;
+  if (THIS->constraintState == CONSTRAINT_WAIT) return;
 
-  if (PRIVATE(this)->constraintState >= CONSTRAINT_X) {
-    int num = PRIVATE(this)->constraintState - CONSTRAINT_X;
+  if (THIS->constraintState >= CONSTRAINT_X) {
+    int num = THIS->constraintState - CONSTRAINT_X;
     projpt[(num+1)%3] = 0.0f;
     projpt[(num+2)%3] = 0.0f;
     startpt[(num+1)%3] = 0.0f;
@@ -1500,8 +1535,8 @@ SoTransformerDragger::dragScale()
   }
 
   SbVec3f center(0.0f, 0.0f, 0.0f);
-  if (PRIVATE(this)->ctrlDown) {
-    center -= PRIVATE(this)->ctrlOffset;
+  if (THIS->ctrlDown) {
+    center -= THIS->ctrlOffset;
   }
 
   float orglen = (startpt-center).length();
@@ -1512,8 +1547,8 @@ SoTransformerDragger::dragScale()
   if (scale > 0.0f && (startpt-center).dot(projpt-center) <= 0.0f) scale = 0.0f;
 
   SbVec3f scalevec(scale, scale, scale);
-  if (PRIVATE(this)->constraintState >= CONSTRAINT_X) {
-    int num = PRIVATE(this)->constraintState - CONSTRAINT_X;
+  if (THIS->constraintState >= CONSTRAINT_X) {
+    int num = THIS->constraintState - CONSTRAINT_X;
     scalevec[(num+1)%3] = 1.0f;
     scalevec[(num+2)%3] = 1.0f;
   }
@@ -1538,31 +1573,31 @@ SoTransformerDragger::dragScale()
 // space). What is basically done is this:
 //
 // Calculates the matrix (as done in SoDragger::appendRotation()):
-//
+// 
 // C := conversion
 // P := rotcenter
 // R := rot
 // M := new motion matrix
 // Mold := previous motionmatrix
-//
+// 
 // M = C^-1 * P^-1 * R * P * C * Mold
-//
+// 
 // What essentially happens is that we transform into C's coordinate
 // system, then we move the rotation center to origo and apply the
 // new rotation.  The rotation has now been applied, but we are in
 // the wrong coordinate system, so we reapply the rotation center
 // and the conversion. Finally we transform the matrix by the old
 // transformation, which gives us the new rotated transformation.
-//
+// 
 // The rotation happens in the local coordinate system of the object
 // if C = P = I, but if P is specified, then the rotation center
 // will be adjusted before the rotation is applied. If the
 // conversion matrix has been specified to be e.g:
-//
+// 
 // C = (Mold * W)^-1
-//
+// 
 // Then the resulting matrix looks something like this:
-//
+// 
 // M = ((Mold * W)^-1)^-1 * P^-1 * R * P * (Mold * W)^-1 * Mold
 //   = Mold * W * P^-1 * R * P * W^-1 * Mold^-1 * Mold
 //   = Mold * W * P^-1 * R * P * W^-1
@@ -1575,7 +1610,7 @@ SoTransformerDragger::dragScale()
 // before the rotation is applied around rotationcenter. Finally the
 // matrix is transformed back to the local coordinate system.
 void
-SoTransformerDragger::dragRotate(void)
+SoTransformer2Dragger::dragRotate(void)
 {
   // Update the sphere projector to the current view so that it
   // accurately can react to events.
@@ -1590,41 +1625,41 @@ SoTransformerDragger::dragRotate(void)
 
   // If shift was pressed and not in non-constrained state, then
   // we switch to non-constrained state.
-  if (event->wasShiftDown() && PRIVATE(this)->constraintState != CONSTRAINT_OFF) {
-    PRIVATE(this)->constraintState = CONSTRAINT_OFF;
+  if (event->wasShiftDown() && THIS->constraintState != CONSTRAINT_OFF) {
+    THIS->constraintState = CONSTRAINT_OFF;
     projpt = this->sphereProj->project(this->getNormalizedLocaterPosition());
-    this->getWorkingToWorldMatrix().multVecMatrix(projpt, PRIVATE(this)->prevWorldHitPt);
-    PRIVATE(this)->prevMotionMatrix = this->getMotionMatrix();
+    this->getWorkingToWorldMatrix().multVecMatrix(projpt, THIS->prevWorldHitPt);
+    THIS->prevMotionMatrix = this->getMotionMatrix();
     this->saveStartParameters();
-    this->setStartingPoint(PRIVATE(this)->prevWorldHitPt);
+    this->setStartingPoint(THIS->prevWorldHitPt);
   }
   // If shift was released while in non-constrained state, then the
   // state jumps back to constrained.
-  else if (!event->wasShiftDown() && PRIVATE(this)->constraintState == CONSTRAINT_OFF) {
-    PRIVATE(this)->constraintState = CONSTRAINT_WAIT;
-    this->setStartingPoint(PRIVATE(this)->prevWorldHitPt);
+  else if (!event->wasShiftDown() && THIS->constraintState == CONSTRAINT_OFF) {
+    THIS->constraintState = CONSTRAINT_WAIT;
+    this->setStartingPoint(THIS->prevWorldHitPt);
     startpt = this->getLocalStartingPoint();
     startpt = this->localToWorking(startpt);
     // This plane is only used to find the constraint direction
     this->planeProj->setPlane(SbPlane(startpt, startpt));
     this->setStartLocaterPosition(event->getPosition());
-    PRIVATE(this)->normalizedStartLocaterPosition = this->getNormalizedLocaterPosition();
+    THIS->normalizedStartLocaterPosition = this->getNormalizedLocaterPosition();
     this->saveStartParameters();
   }
 
   SbVec3f center(0.0f, 0.0f, 0.0f);
-  if (PRIVATE(this)->ctrlDown) {
+  if (THIS->ctrlDown) {
     // Adjust the center to be on the other side of the bounding box
     // when the control key has been pressed.
-    center -= PRIVATE(this)->ctrlOffset * KNOB_DISTANCE;
+    center -= THIS->ctrlOffset * KNOB_DISTANCE;
   }
 
   // Show the necessary feedback geometry for rotation.
   (void) this->setDynamicRotatorSwitches(event);
 
-  if (PRIVATE(this)->constraintState == CONSTRAINT_OFF) {
+  if (THIS->constraintState == CONSTRAINT_OFF) {
     SbVec3f worldcenter = this->getBoxPointInWorldSpace(center);
-    SbVec3f prevworldprojpt = PRIVATE(this)->prevWorldHitPt;
+    SbVec3f prevworldprojpt = THIS->prevWorldHitPt;
     SbVec3f worldprojpt;
 
     // Find locater position in world space
@@ -1636,38 +1671,38 @@ SoTransformerDragger::dragRotate(void)
     worldprojpt -= worldcenter;
     prevworldprojpt -= worldcenter;
 
-    // FIXME: Without this test, the rotation behaves very strange,
-    // especially at the edge/outside of the sphere. I will
-    // investigate this some more to understand what happens.
-    // 20040804 jornskaa
-
     // Normalize the vectors before finding the dotproduct angle
     // between them.
-    if ((worldprojpt.normalize() > 0.0f) &&
-        (prevworldprojpt.normalize() > 0.0f) &&
-        (worldprojpt.dot(prevworldprojpt) > 0.8f)) {
-      PRIVATE(this)->prevWorldHitPt = wppt;
+    worldprojpt.normalize();
+    prevworldprojpt.normalize();
+
+    // FIXME: Without this test, the rotation behaves very strange,
+    // especially at the edge/outside of the sphere. I will
+    // investigate this some more to understand what happens. 
+    // 20040804 jornskaa
+    if (worldprojpt.dot(prevworldprojpt) > 0.8f) {
+      THIS->prevWorldHitPt = wppt;
 
       // Calculate the rotation from previous prevworldprojpt to
       // worldprojpt
       SbRotation rot(prevworldprojpt, worldprojpt);
-
+      
       // Calculate new motionmatrix by rotating in world space to
       // prevent shearing with non-uniform scale.
       SbMatrix mat = this->getWorldToLocalMatrix();
-      PRIVATE(this)->prevMotionMatrix = this->appendRotation(PRIVATE(this)->prevMotionMatrix, rot,
+      THIS->prevMotionMatrix = this->appendRotation(THIS->prevMotionMatrix, rot,
                                                     worldcenter, &mat);
-
-      this->setMotionMatrix(PRIVATE(this)->prevMotionMatrix);
+      
+      this->setMotionMatrix(THIS->prevMotionMatrix);
     }
   }
-  else if (PRIVATE(this)->constraintState == CONSTRAINT_WAIT && this->isAdequateConstraintMotion()) {
+  else if (THIS->constraintState == CONSTRAINT_WAIT && this->isAdequateConstraintMotion()) {
     this->planeProj->setViewVolume(this->getViewVolume());
     this->planeProj->setWorkingSpace(this->getWorkingToWorldMatrix());
     projpt = this->planeProj->project(this->getNormalizedLocaterPosition());
 
     SbVec3f diff = projpt - startpt;
-    diff[PRIVATE(this)->dimension] = 0.0f;
+    diff[THIS->dimension] = 0.0f;
 
     int biggest = 0;
     double bigval = fabs(diff[0]);
@@ -1678,22 +1713,22 @@ SoTransformerDragger::dragRotate(void)
     if (fabs(diff[2]) > bigval) {
       biggest = 2;
     }
-    PRIVATE(this)->constraintState = CONSTRAINT_X + biggest;
+    THIS->constraintState = CONSTRAINT_X + biggest;
     SbVec3f n(0.0f, 0.0f, 0.0f);
     n[biggest] = 1.0f;
     SbVec3f dim(0.0f, 0.0f, 0.0f);
-    dim[PRIVATE(this)->dimension] = 1.0f;
+    dim[THIS->dimension] = 1.0f;
 
     // set plane to do disc-rotate in
     this->planeProj->setPlane(SbPlane(SbVec3f(0.0f, 0.0f, 0.0f), dim, dim+n));
     (void) this->setDynamicRotatorSwitches(event);
 
     // Initialize prevWorldHitPt and prevMotionMatrix.
-    projpt = this->planeProj->project(PRIVATE(this)->normalizedStartLocaterPosition);
-    this->getWorkingToWorldMatrix().multVecMatrix(projpt, PRIVATE(this)->prevWorldHitPt);
-    PRIVATE(this)->prevMotionMatrix = this->getMotionMatrix();
+    projpt = this->planeProj->project(THIS->normalizedStartLocaterPosition);
+    this->getWorkingToWorldMatrix().multVecMatrix(projpt, THIS->prevWorldHitPt);
+    THIS->prevMotionMatrix = this->getMotionMatrix();
   }
-  if (PRIVATE(this)->constraintState >= CONSTRAINT_X) {
+  if (THIS->constraintState >= CONSTRAINT_X) {
     this->planeProj->setViewVolume(this->getViewVolume());
     this->planeProj->setWorkingSpace(this->getWorkingToWorldMatrix());
 
@@ -1702,7 +1737,7 @@ SoTransformerDragger::dragRotate(void)
     SbVec3f prevprojpt;
     SbVec3f worldprojpt;
 
-    prevworldprojpt = PRIVATE(this)->prevWorldHitPt;
+    prevworldprojpt = THIS->prevWorldHitPt;
 
     // Find current locater position projected onto the plane in world
     // space.
@@ -1733,6 +1768,11 @@ SoTransformerDragger::dragRotate(void)
     // and there is little room for error that might happen when the
     // vectors come very close to the rotation center.
     if (projpt.sqrLength() > 0.1f) {
+      // Normalize the vectors before finding the dotproduct angle
+      // between them.
+      prevworldprojpt.normalize();
+      worldprojpt.normalize();
+
       // Since we are using incremental changes, the changes will
       // never be very big, and the dot product between the
       // rotation-vectors should always be above zero, and never
@@ -1740,24 +1780,19 @@ SoTransformerDragger::dragRotate(void)
       // is above PI/2. This might happen if dragging is done over the
       // rotation center, but we do not allow that and just wait until
       // the locater comes into the valid range before rotating.
-
-      // Normalize the vectors before finding the dotproduct angle
-      // between them.
-      if ((prevworldprojpt.normalize() > 0.0f) &&
-          (worldprojpt.normalize() > 0.0f) &&
-          (prevworldprojpt.dot(worldprojpt) > 0.3f)) { // 0.3 == 72.5degrees
-        PRIVATE(this)->prevWorldHitPt = wppt;
-
+      if (prevworldprojpt.dot(worldprojpt) > 0.3f) { // 0.3 == 72.5degrees
+        THIS->prevWorldHitPt = wppt;
+        
         // Rotate between the two points in the plane
         SbRotation rot(prevworldprojpt, worldprojpt);
-
+        
         // Rotate in world space to prevent shearing when having
         // non-uniform scale.
         SbMatrix mat = this->getWorldToLocalMatrix();
-        PRIVATE(this)->prevMotionMatrix = (this->appendRotation(PRIVATE(this)->prevMotionMatrix, rot,
+        THIS->prevMotionMatrix = (this->appendRotation(THIS->prevMotionMatrix, rot,
                                                        worldcenter, &mat));
-
-        this->setMotionMatrix(PRIVATE(this)->prevMotionMatrix);
+        
+        this->setMotionMatrix(THIS->prevMotionMatrix);
       }
     }
   }
@@ -1769,9 +1804,9 @@ SoTransformerDragger::dragRotate(void)
   with the dragger.
 */
 void
-SoTransformerDragger::dragFinish(void)
+SoTransformer2Dragger::dragFinish(void)
 {
-  switch (PRIVATE(this)->whatkind) {
+  switch (THIS->whatkind) {
   case WHATKIND_TRANSLATE:
     this->setSwitchValue("translateBoxFeedbackSwitch", SO_SWITCH_NONE);
     break;
@@ -1795,9 +1830,9 @@ SoTransformerDragger::dragFinish(void)
     break;
   }
 
-  PRIVATE(this)->whatkind = WHATKIND_NONE;
+  THIS->whatkind = WHATKIND_NONE;
   this->state = INACTIVE;
-  PRIVATE(this)->constraintState = CONSTRAINT_OFF;
+  THIS->constraintState = CONSTRAINT_OFF;
   this->setAllPartSwitches(0,0,0);
   this->setSwitchValue("xAxisFeedbackSwitch", SO_SWITCH_NONE);
   this->setSwitchValue("yAxisFeedbackSwitch", SO_SWITCH_NONE);
@@ -1829,7 +1864,7 @@ SoTransformerDragger::dragFinish(void)
 }
 
 void
-SoTransformerDragger::updateAntiSquishList(void)
+SoTransformer2Dragger::updateAntiSquishList(void)
 {
   if (this->antiSquishList.getLength() == 0) {
     SoSeparator *top = SO_GET_ANY_PART(this, "topSeparator", SoSeparator);
@@ -1843,8 +1878,8 @@ SoTransformerDragger::updateAntiSquishList(void)
 
     SoPathList &pl = sa.getPaths();
     for (int i = 0; i < pl.getLength(); i++) {
-      SoFullPath * path = reclassify_cast<SoFullPath *>(pl[i]);
-      SoNode * tail = path->getTail();
+      SoFullPath *path = (SoFullPath*)pl[i];
+      SoNode *tail = path->getTail();
       int j, n = this->antiSquishList.getLength();
       for (j = 0; j < n; j++) {
         if (this->antiSquishList[j] == tail) break;
@@ -1855,13 +1890,13 @@ SoTransformerDragger::updateAntiSquishList(void)
   }
   int n = this->antiSquishList.getLength();
   for (int i = 0; i < n; i++) {
-    SoAntiSquish * squishy = coin_assert_cast<SoAntiSquish *>(this->antiSquishList[i]);
+    SoAntiSquish *squishy = (SoAntiSquish*) this->antiSquishList[i];
     squishy->recalc();
   }
 }
 
 void
-SoTransformerDragger::setAllPartSwitches(int scalewhich, int rotatewhich, int translatewhich)
+SoTransformer2Dragger::setAllPartSwitches(int scalewhich, int rotatewhich, int translatewhich)
 {
   int i;
   SoSwitch *sw;
@@ -1889,7 +1924,7 @@ SoTransformerDragger::setAllPartSwitches(int scalewhich, int rotatewhich, int tr
   Open Inventor API.  We'll consider to implement it if requested.
 */
 int
-SoTransformerDragger::getMouseGestureDirection(SbBool COIN_UNUSED_ARG(x_ok), SbBool COIN_UNUSED_ARG(y_ok), SbBool COIN_UNUSED_ARG(z_ok))
+SoTransformer2Dragger::getMouseGestureDirection(SbBool x_ok, SbBool y_ok, SbBool z_ok)
 {
   COIN_OBSOLETED();
   return -1;
@@ -1900,7 +1935,7 @@ SoTransformerDragger::getMouseGestureDirection(SbBool COIN_UNUSED_ARG(x_ok), SbB
   Open Inventor API.  We'll consider to implement it if requested.
 */
 int
-SoTransformerDragger::getIgnoreAxis(SbVec2f COIN_UNUSED_ARG(axis[3][2]), SbBool COIN_UNUSED_ARG(x_ok), SbBool COIN_UNUSED_ARG(y_ok), SbBool COIN_UNUSED_ARG(z_ok))
+SoTransformer2Dragger::getIgnoreAxis(SbVec2f axis[3][2], SbBool x_ok, SbBool y_ok, SbBool z_ok)
 {
   COIN_OBSOLETED();
   return -1;
@@ -1911,7 +1946,7 @@ SoTransformerDragger::getIgnoreAxis(SbVec2f COIN_UNUSED_ARG(axis[3][2]), SbBool 
   Open Inventor API.  We'll consider to implement it if requested.
 */
 void
-SoTransformerDragger::makeMinorAxisPerpendicularIfColinear(SbVec2f COIN_UNUSED_ARG(origin), SbVec2f COIN_UNUSED_ARG(axisends[3][2]), int COIN_UNUSED_ARG(index_a), int COIN_UNUSED_ARG(index_b))
+SoTransformer2Dragger::makeMinorAxisPerpendicularIfColinear(SbVec2f origin, SbVec2f axisends[3][2], int index_a, int index_b)
 {
   COIN_OBSOLETED();
 }
@@ -1921,14 +1956,14 @@ SoTransformerDragger::makeMinorAxisPerpendicularIfColinear(SbVec2f COIN_UNUSED_A
   Open Inventor API.  We'll consider to implement it if requested.
 */
 SbBool
-SoTransformerDragger::isColinear(SbVec2f COIN_UNUSED_ARG(a1[2]), SbVec2f COIN_UNUSED_ARG(a2[2]), int COIN_UNUSED_ARG(pixels))
+SoTransformer2Dragger::isColinear(SbVec2f a1[2], SbVec2f a2[2], int pixels)
 {
   COIN_OBSOLETED();
   return FALSE;
 }
 
 void
-SoTransformerDragger::getSurroundScaleMatrices(SbMatrix & mat, SbMatrix & inv)
+SoTransformer2Dragger::getSurroundScaleMatrices(SbMatrix & mat, SbMatrix & inv)
 {
   if (this->surroundScale.getValue()) {
     this->getPartToLocalMatrix("surroundScale", mat, inv);
@@ -1939,17 +1974,17 @@ SoTransformerDragger::getSurroundScaleMatrices(SbMatrix & mat, SbMatrix & inv)
 }
 
 SoNode *
-SoTransformerDragger::getNodeFieldNode(const char *fieldname)
+SoTransformer2Dragger::getNodeFieldNode(const char *fieldname)
 {
   SoField *field = this->getField(fieldname);
   assert(field != NULL);
   assert(field->isOfType(SoSFNode::getClassTypeId()));
-  assert(coin_assert_cast<SoSFNode *>(field)->getValue() != NULL);
-  return coin_assert_cast<SoSFNode *>(field)->getValue();
+  assert(((SoSFNode*)field)->getValue() != NULL);
+  return ((SoSFNode*)field)->getValue();
 }
 
 SbMatrix
-SoTransformerDragger::getWorkingToWorldMatrix()
+SoTransformer2Dragger::getWorkingToWorldMatrix()
 {
   SbMatrix mat, inv;
   this->getSurroundScaleMatrices(mat, inv);
@@ -1958,7 +1993,7 @@ SoTransformerDragger::getWorkingToWorldMatrix()
 }
 
 SbMatrix
-SoTransformerDragger::getWorldToWorkingMatrix(void)
+SoTransformer2Dragger::getWorldToWorkingMatrix(void)
 {
   SbMatrix mat, inv;
   this->getSurroundScaleMatrices(mat, inv);
@@ -1967,7 +2002,7 @@ SoTransformerDragger::getWorldToWorkingMatrix(void)
 }
 
 SbVec3f
-SoTransformerDragger::localToWorking(const SbVec3f &v)
+SoTransformer2Dragger::localToWorking(const SbVec3f &v)
 {
   SbMatrix mat, inv;
   this->getSurroundScaleMatrices(mat, inv);
@@ -1977,7 +2012,7 @@ SoTransformerDragger::localToWorking(const SbVec3f &v)
 }
 
 SbVec3f
-SoTransformerDragger::workingToLocal(const SbVec3f &v)
+SoTransformer2Dragger::workingToLocal(const SbVec3f &v)
 {
   SbMatrix mat, inv;
   this->getSurroundScaleMatrices(mat, inv);
@@ -1987,7 +2022,7 @@ SoTransformerDragger::workingToLocal(const SbVec3f &v)
 }
 
 SbVec3f
-SoTransformerDragger::calcCtrlOffset(const SbVec3f &startpt)
+SoTransformer2Dragger::calcCtrlOffset(const SbVec3f &startpt)
 {
   SbVec3f v = startpt;
   for (int i = 0; i < 3; i++) {
@@ -1999,36 +2034,36 @@ SoTransformerDragger::calcCtrlOffset(const SbVec3f &startpt)
 }
 
 void
-SoTransformerDragger::setSwitchValue(const char *str, const int which)
+SoTransformer2Dragger::setSwitchValue(const char *str, const int which)
 {
   SoSwitch *sw = SO_GET_ANY_PART(this, str, SoSwitch);
   SoInteractionKit::setSwitchValue(sw, which);
 }
 
 void
-SoTransformerDragger::setSwitchValue(SoNode *node, const int which)
+SoTransformer2Dragger::setSwitchValue(SoNode *node, const int which)
 {
   SoSwitch *sw = (SoSwitch *)node;
   SoInteractionKit::setSwitchValue(sw, which);
 }
 
 SbBool
-SoTransformerDragger::setDynamicTranslatorSwitches(const SoEvent *event)
+SoTransformer2Dragger::setDynamicTranslatorSwitches(const SoEvent *event)
 {
   SbBool changed = FALSE;
-  if (PRIVATE(this)->ctrlDown != event->wasCtrlDown()) {
+  if (THIS->ctrlDown != event->wasCtrlDown()) {
     changed = TRUE;
-    PRIVATE(this)->ctrlDown = !PRIVATE(this)->ctrlDown;
+    THIS->ctrlDown = !THIS->ctrlDown;
   }
-  if (PRIVATE(this)->shiftDown != event->wasShiftDown()) {
+  if (THIS->shiftDown != event->wasShiftDown()) {
     changed = TRUE;
-    PRIVATE(this)->shiftDown = !PRIVATE(this)->shiftDown;
+    THIS->shiftDown = !THIS->shiftDown;
   }
 
   SbString str;
 
-  if (PRIVATE(this)->constraintState >= CONSTRAINT_X) {
-    int which = PRIVATE(this)->constraintState - CONSTRAINT_X;
+  if (THIS->constraintState >= CONSTRAINT_X) {
+    int which = THIS->constraintState - CONSTRAINT_X;
     str.sprintf("%cAxisFeedbackSwitch", 'x' + which);
     this->setSwitchValue(str.getString(), 0);
     str.sprintf("%cAxisFeedbackSwitch", 'x' + (which+1)%3);
@@ -2037,39 +2072,39 @@ SoTransformerDragger::setDynamicTranslatorSwitches(const SoEvent *event)
     this->setSwitchValue(str.getString(), SO_SWITCH_NONE);
   }
   else {
-    str.sprintf("%cAxisFeedbackSwitch", 'x' + PRIVATE(this)->dimension);
-    this->setSwitchValue(str.getString(), PRIVATE(this)->ctrlDown ? 0 : SO_SWITCH_NONE);
-    int val = PRIVATE(this)->shiftDown ? 1 : 0;
-    if (PRIVATE(this)->ctrlDown) val = SO_SWITCH_NONE;
-    str.sprintf("%cAxisFeedbackSwitch", 'x' + (PRIVATE(this)->dimension+1)%3);
+    str.sprintf("%cAxisFeedbackSwitch", 'x' + THIS->dimension);
+    this->setSwitchValue(str.getString(), THIS->ctrlDown ? 0 : SO_SWITCH_NONE);
+    int val = THIS->shiftDown ? 1 : 0;
+    if (THIS->ctrlDown) val = SO_SWITCH_NONE;
+    str.sprintf("%cAxisFeedbackSwitch", 'x' + (THIS->dimension+1)%3);
     this->setSwitchValue(str.getString(), val);
-    str.sprintf("%cAxisFeedbackSwitch", 'x' + (PRIVATE(this)->dimension+2)%3);
+    str.sprintf("%cAxisFeedbackSwitch", 'x' + (THIS->dimension+2)%3);
     this->setSwitchValue(str.getString(), val);
   }
   return changed;
 }
 
 SbBool
-SoTransformerDragger::setDynamicScaleSwitches(const SoEvent *event)
+SoTransformer2Dragger::setDynamicScaleSwitches(const SoEvent *event)
 {
   SbBool changed = FALSE;
-  if (PRIVATE(this)->ctrlDown != event->wasCtrlDown()) {
+  if (THIS->ctrlDown != event->wasCtrlDown()) {
     changed = TRUE;
-    PRIVATE(this)->ctrlDown = !PRIVATE(this)->ctrlDown;
+    THIS->ctrlDown = !THIS->ctrlDown;
   }
-  if (PRIVATE(this)->shiftDown != event->wasShiftDown()) {
+  if (THIS->shiftDown != event->wasShiftDown()) {
     changed = TRUE;
-    PRIVATE(this)->shiftDown = !PRIVATE(this)->shiftDown;
+    THIS->shiftDown = !THIS->shiftDown;
   }
   SbString str;
-  if (PRIVATE(this)->constraintState == CONSTRAINT_WAIT) {
+  if (THIS->constraintState == CONSTRAINT_WAIT) {
     this->setSwitchValue("xAxisFeedbackSwitch", 1);
     this->setSwitchValue("yAxisFeedbackSwitch", 1);
     this->setSwitchValue("zAxisFeedbackSwitch", 1);
     this->setSwitchValue("radialFeedbackSwitch", SO_SWITCH_NONE);
   }
-  else if (PRIVATE(this)->constraintState >= CONSTRAINT_X) {
-    int which = PRIVATE(this)->constraintState - CONSTRAINT_X;
+  else if (THIS->constraintState >= CONSTRAINT_X) {
+    int which = THIS->constraintState - CONSTRAINT_X;
     str.sprintf("%cAxisFeedbackSwitch", 'x' + which);
     this->setSwitchValue(str.getString(), 0);
     str.sprintf("%cAxisFeedbackSwitch", 'x' + (which+1)%3);
@@ -2085,12 +2120,12 @@ SoTransformerDragger::setDynamicScaleSwitches(const SoEvent *event)
     this->setSwitchValue("radialFeedbackSwitch", 0);
   }
 
-  this->setSwitchValue("scaleBoxFeedbackSwitch", PRIVATE(this)->shiftDown ? 0 : SO_SWITCH_NONE);
+  this->setSwitchValue("scaleBoxFeedbackSwitch", THIS->shiftDown ? 0 : SO_SWITCH_NONE);
 
-  if (PRIVATE(this)->ctrlDown) {
+  if (THIS->ctrlDown) {
     SbVec3f pt = this->getLocalStartingPoint();
-    if (PRIVATE(this)->constraintState >= CONSTRAINT_X) {
-      int num = PRIVATE(this)->constraintState - CONSTRAINT_X;
+    if (THIS->constraintState >= CONSTRAINT_X) {
+      int num = THIS->constraintState - CONSTRAINT_X;
       pt[(num+1)%3] = 0.0f;
       pt[(num+2)%3] = 0.0f;
     }
@@ -2115,34 +2150,34 @@ SoTransformerDragger::setDynamicScaleSwitches(const SoEvent *event)
 
 
 SbBool
-SoTransformerDragger::setDynamicRotatorSwitches(const SoEvent *event)
+SoTransformer2Dragger::setDynamicRotatorSwitches(const SoEvent *event)
 {
   SbBool changed = FALSE;
-  if (PRIVATE(this)->ctrlDown != event->wasCtrlDown()) {
+  if (THIS->ctrlDown != event->wasCtrlDown()) {
     changed = TRUE;
-    PRIVATE(this)->ctrlDown = !PRIVATE(this)->ctrlDown;
+    THIS->ctrlDown = !THIS->ctrlDown;
   }
-  if (PRIVATE(this)->shiftDown != event->wasShiftDown()) {
+  if (THIS->shiftDown != event->wasShiftDown()) {
     changed = TRUE;
-    PRIVATE(this)->shiftDown = !PRIVATE(this)->shiftDown;
+    THIS->shiftDown = !THIS->shiftDown;
   }
 
   SbString str;
   {
-    int axis0 = PRIVATE(this)->whatnum-1;
+    int axis0 = THIS->whatnum-1;
     int axis1 = (axis0 & 1) ? axis0 - 1 : axis0 + 1;
 
     str.sprintf("rotator%dSwitch", axis0 + 1);
     this->setSwitchValue(str.getString(), 1);
     str.sprintf("rotator%dSwitch", axis1 + 1);
-    this->setSwitchValue(str.getString(), PRIVATE(this)->ctrlDown ? 0 : 1);
+    this->setSwitchValue(str.getString(), THIS->ctrlDown ? 0 : 1);
   }
 
   int axisval[3];
   int circleval[3];
-  int dim = PRIVATE(this)->dimension;
+  int dim = THIS->dimension;
 
-  if (PRIVATE(this)->constraintState == CONSTRAINT_WAIT) {
+  if (THIS->constraintState == CONSTRAINT_WAIT) {
     axisval[dim] = SO_SWITCH_NONE;
     axisval[(dim+1)%3] = 1;
     axisval[(dim+2)%3] = 1;
@@ -2150,8 +2185,8 @@ SoTransformerDragger::setDynamicRotatorSwitches(const SoEvent *event)
     circleval[(dim+1)%3] = 0;
     circleval[(dim+2)%3] = 0;
   }
-  else if (PRIVATE(this)->constraintState >= CONSTRAINT_X) {
-    dim = PRIVATE(this)->constraintState - CONSTRAINT_X;
+  else if (THIS->constraintState >= CONSTRAINT_X) {
+    dim = THIS->constraintState - CONSTRAINT_X;
     axisval[dim] = 0;
     axisval[(dim+1)%3] = SO_SWITCH_NONE;
     axisval[(dim+2)%3] = SO_SWITCH_NONE;
@@ -2169,9 +2204,9 @@ SoTransformerDragger::setDynamicRotatorSwitches(const SoEvent *event)
     axisval[1] = SO_SWITCH_NONE;
     axisval[2] = SO_SWITCH_NONE;
   }
-  if (PRIVATE(this)->ctrlDown) {
+  if (THIS->ctrlDown) {
     SoTransform *transform = SO_GET_ANY_PART(this, "circleFeedbackTransform", SoTransform);
-    SbVec3f offset = -PRIVATE(this)->ctrlOffset * KNOB_DISTANCE;
+    SbVec3f offset = -THIS->ctrlOffset * KNOB_DISTANCE;
     if (transform->translation.getValue() != offset)
       transform->translation = offset;
     if (transform->scaleFactor.getValue() != SbVec3f(2.0f, 2.0f, 2.0f))
@@ -2192,6 +2227,100 @@ SoTransformerDragger::setDynamicRotatorSwitches(const SoEvent *event)
   return changed;
 }
 
+// Calculates the location of the center field as expressed in 
+// box space, then sets the matrix of the translateToCenter part
+// to be a translation of that amount.
+void 
+SoTransformer2Dragger::recalcTranslateToCenter()
+{
+  // Build a matrix to translate the origin of the ball
+  // to the transformed center...
+  SbVec3f ctrForMatrix;
+
+  if ( center.isDefault() == FALSE )
+  {
+    // If the center value is non-default, then just translate to it:
+	ctrForMatrix = center.getValue();
+  }
+  else
+  {
+	// We must do this because recalcTranslateToCenter can get called at 
+	// all kinds of funny times, for example when an ancestor transform's 
+	// field value is changed.  If we don't invalidate, then we'll fail
+	// to incorporate changes along the path above this node.
+    invalidateWorldConversionMatrices();
+
+	// If the center is default, get the center of the bbox into
+	// local space.
+	SbMatrix lclToBox, boxToLcl;
+	getPartToLocalMatrix("surroundScale", boxToLcl,lclToBox);
+	boxToLcl.multVecMatrix(SbVec3f(0,0,0), ctrForMatrix);
+  }
+
+  SbMatrix newMat;
+  newMat.setTranslate( ctrForMatrix );
+
+  // Set the translate to center matrix...
+  SoMatrixTransform *mx = SO_GET_ANY_PART(this,"translateToCenter",
+      SoMatrixTransform );
+
+  //??? Turn off notification.  We have to do this because this often
+  //??? gets called in the midst of a boundingBoxAction (when the 
+  //??? surroundScale recalcs its parameters).
+  //??? It should be okay to turn off notification because this translation
+  //??? node lives as a sibling to a CowViewportSwitch node, which 
+  //??? invalidates caches every time it is traversed. So the separator
+  //??? above this one will never be cached and therefore the matrix
+  //??? will always be visited.
+  //??? 
+  SbBool wasEnabled = mx->enableNotify(FALSE);
+  mx->matrix = newMat;
+  mx->enableNotify(wasEnabled);
+}
+
+// This returns the value of the center field, expressed in box
+// space.  If the center.isDefault() is TRUE, then it returns (0,0,0)
+// This might not be the same as the center field value of (0,0,0) when
+// cast into box space, since the conversion is not always identity.
+//
+SbVec3f 
+SoTransformer2Dragger::getCenterInBoxSpace()
+{
+  SbVec3f answer;
+  if ( center.isDefault() )
+  {
+	answer.setValue(0,0,0);
+  }
+  else
+  {
+	SbMatrix lclToBox, boxToLcl;
+	getPartToLocalMatrix("surroundScale", boxToLcl,lclToBox);
+	lclToBox.multVecMatrix(center.getValue(),answer);
+  }
+  return answer;
+}
+
+//    Saves the matrix that moves the center relative to the rest of the
+//    parts after it calls the regular SoDragger method.
+//
+void
+SoTransformer2Dragger::saveStartParameters()
+{
+  SoDragger::saveStartParameters();
+
+  SoMatrixTransform *thePart
+    = SO_GET_ANY_PART(this,"translateToCenter",SoMatrixTransform);
+
+  this->startCenterMatrix = thePart->matrix.getValue();
+}
+
+void
+SoTransformer2Dragger::surroundScaleChangeCB( void *userData,
+    SoSurroundScale * )
+{
+  SoTransformer2Dragger *myself = (SoTransformer2Dragger *) userData;
+  myself->recalcTranslateToCenter();
+}
 
 // Undefine these again, as some of them are also used in other
 // dragger sourcecode files (which causes trouble when using the
@@ -2210,83 +2339,5 @@ SoTransformerDragger::setDynamicRotatorSwitches(const SoEvent *event)
 
 #undef KNOB_DISTANCE
 
-#undef PRIVATE
+#undef THIS
 #undef THISP
-
-#ifdef COIN_TEST_SUITE
-
-#include <Inventor/SbDict.h>
-#include <Inventor/actions/SoCallbackAction.h>
-#include <Inventor/nodes/SoSeparator.h>
-
-static
-SoCallbackAction::Response
-register_cb(void * data, SoCallbackAction * action, const SoNode * node)
-{
-  assert(data);
-  SbDict * dict = static_cast<SbDict *>(data);
-  dict->enter(reinterpret_cast<uintptr_t>(node), NULL);
-  return SoCallbackAction::CONTINUE;
-}
-
-static
-void
-ensure_unique_cb(uintptr_t entry, void * value, void * data)
-{
-  SbDict * copydict = static_cast<SbDict *>(data);
-  void * val = NULL;
-  BOOST_ASSERT(!copydict->find(entry, val));
-}
-
-BOOST_AUTO_TEST_CASE(dragger_deep_copy)
-{
-  SbDict origdict, copydict;
-
-  SoSeparator * root = new SoSeparator;
-  root->setName("dragger_deep_copy_root");
-  root->ref();
-  root->addChild(new SoTransformerDragger);
-
-  SoSeparator * copy = static_cast<SoSeparator *>(root->copy());
-  assert(copy);
-  copy->setName("dragger_deep_copy_copy");
-  copy->ref();
-
-  {
-    SoCallbackAction cba;
-    cba.setCallbackAll(TRUE);
-
-    cba.addPreCallback(SoNode::getClassTypeId(), register_cb, &origdict);
-    cba.apply(root);
-  }
-
-  {
-    SoCallbackAction cba;
-    cba.setCallbackAll(TRUE);
-
-    cba.addPreCallback(SoNode::getClassTypeId(), register_cb, &copydict);
-    cba.apply(copy);
-  }
-
-  SbPList keys, values;
-
-  origdict.makePList(keys, values);
-  const int origdictsize = keys.getLength();
-
-  keys.truncate(0);
-  values.truncate(0);
-  copydict.makePList(keys, values);
-  const int copydictsize = keys.getLength();
-
-  BOOST_ASSERT(origdictsize == copydictsize);
-
-  // make sure pointer sets have an empty union
-  origdict.applyToAll(ensure_unique_cb, &copydict);
-
-  root->unref();
-  copy->unref();
-}
-
-#endif // COIN_TEST_SUITE
-
-#endif // HAVE_DRAGGERS
