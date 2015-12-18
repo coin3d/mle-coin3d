@@ -105,6 +105,7 @@ am__draggers_lst_SOURCES_DIST = SoDragger.cpp SoCenterballDragger.cpp \
 	SoSpotLightDragger.cpp SoTabBoxDragger.cpp \
 	SoTabPlaneDragger.cpp SoTrackballDragger.cpp \
 	SoTransformBoxDragger.cpp SoTransformerDragger.cpp \
+	SoTransformer2Dragger.cpp \
 	SoTranslate1Dragger.cpp SoTranslate2Dragger.cpp \
 	all-draggers-cpp.cpp
 am__objects_1 = SoDragger.$(OBJEXT) SoCenterballDragger.$(OBJEXT) \
@@ -118,7 +119,7 @@ am__objects_1 = SoDragger.$(OBJEXT) SoCenterballDragger.$(OBJEXT) \
 	SoScaleUniformDragger.$(OBJEXT) SoSpotLightDragger.$(OBJEXT) \
 	SoTabBoxDragger.$(OBJEXT) SoTabPlaneDragger.$(OBJEXT) \
 	SoTrackballDragger.$(OBJEXT) SoTransformBoxDragger.$(OBJEXT) \
-	SoTransformerDragger.$(OBJEXT) SoTranslate1Dragger.$(OBJEXT) \
+	SoTransformerDragger.$(OBJEXT) SoTransformer2Dragger.$(OBJEXT) SoTranslate1Dragger.$(OBJEXT) \
 	SoTranslate2Dragger.$(OBJEXT)
 am__objects_2 = all-draggers-cpp.$(OBJEXT)
 @HACKING_COMPACT_BUILD_FALSE@am__objects_3 = $(am__objects_1)
@@ -135,6 +136,7 @@ am__EXTRA_draggers_lst_SOURCES_DIST = all-draggers-cpp.cpp \
 	SoSpotLightDragger.cpp SoTabBoxDragger.cpp \
 	SoTabPlaneDragger.cpp SoTrackballDragger.cpp \
 	SoTransformBoxDragger.cpp SoTransformerDragger.cpp \
+	SoTransformer2Dragger.cpp \
 	SoTranslate1Dragger.cpp SoTranslate2Dragger.cpp
 draggers_lst_OBJECTS = $(am_draggers_lst_OBJECTS)
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libdraggersincdir)"
@@ -151,7 +153,7 @@ am__libdraggers_la_SOURCES_DIST = SoDragger.cpp \
 	SoScaleUniformDragger.cpp SoSpotLightDragger.cpp \
 	SoTabBoxDragger.cpp SoTabPlaneDragger.cpp \
 	SoTrackballDragger.cpp SoTransformBoxDragger.cpp \
-	SoTransformerDragger.cpp SoTranslate1Dragger.cpp \
+	SoTransformerDragger.cpp SoTransformer2Dragger.cpp SoTranslate1Dragger.cpp \
 	SoTranslate2Dragger.cpp all-draggers-cpp.cpp
 am__objects_6 = SoDragger.lo SoCenterballDragger.lo \
 	SoDirectionalLightDragger.lo SoDragPointDragger.lo \
@@ -162,6 +164,7 @@ am__objects_6 = SoDragger.lo SoCenterballDragger.lo \
 	SoScaleUniformDragger.lo SoSpotLightDragger.lo \
 	SoTabBoxDragger.lo SoTabPlaneDragger.lo SoTrackballDragger.lo \
 	SoTransformBoxDragger.lo SoTransformerDragger.lo \
+	SoTransformer2Dragger.lo \
 	SoTranslate1Dragger.lo SoTranslate2Dragger.lo
 am__objects_7 = all-draggers-cpp.lo
 @HACKING_COMPACT_BUILD_FALSE@am__objects_8 = $(am__objects_6)
@@ -178,6 +181,7 @@ am__EXTRA_libdraggers_la_SOURCES_DIST = all-draggers-cpp.cpp \
 	SoSpotLightDragger.cpp SoTabBoxDragger.cpp \
 	SoTabPlaneDragger.cpp SoTrackballDragger.cpp \
 	SoTransformBoxDragger.cpp SoTransformerDragger.cpp \
+	SoTransformer2Dragger.cpp \
 	SoTranslate1Dragger.cpp SoTranslate2Dragger.cpp
 libdraggers_la_OBJECTS = $(am_libdraggers_la_OBJECTS)
 libdraggers@SUFFIX@LINKHACK_la_LIBADD =
@@ -191,7 +195,7 @@ am__libdraggers@SUFFIX@LINKHACK_la_SOURCES_DIST = SoDragger.cpp \
 	SoScaleUniformDragger.cpp SoSpotLightDragger.cpp \
 	SoTabBoxDragger.cpp SoTabPlaneDragger.cpp \
 	SoTrackballDragger.cpp SoTransformBoxDragger.cpp \
-	SoTransformerDragger.cpp SoTranslate1Dragger.cpp \
+	SoTransformerDragger.cpp SoTransformer2Dragger.cpp SoTranslate1Dragger.cpp \
 	SoTranslate2Dragger.cpp all-draggers-cpp.cpp
 am_libdraggers@SUFFIX@LINKHACK_la_OBJECTS = $(am__objects_8)
 am__EXTRA_libdraggers@SUFFIX@LINKHACK_la_SOURCES_DIST =  \
@@ -205,6 +209,7 @@ am__EXTRA_libdraggers@SUFFIX@LINKHACK_la_SOURCES_DIST =  \
 	SoSpotLightDragger.cpp SoTabBoxDragger.cpp \
 	SoTabPlaneDragger.cpp SoTrackballDragger.cpp \
 	SoTransformBoxDragger.cpp SoTransformerDragger.cpp \
+	SoTransformer2Dragger.cpp \
 	SoTranslate1Dragger.cpp SoTranslate2Dragger.cpp
 libdraggers@SUFFIX@LINKHACK_la_OBJECTS =  \
 	$(am_libdraggers@SUFFIX@LINKHACK_la_OBJECTS)
@@ -249,6 +254,8 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/SoTransformBoxDragger.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/SoTransformerDragger.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/SoTransformerDragger.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/SoTransformer2Dragger.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/SoTransformer2Dragger.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/SoTranslate1Dragger.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/SoTranslate1Dragger.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/SoTranslate2Dragger.Plo \
@@ -540,6 +547,7 @@ RegularSources = \
 	SoTrackballDragger.cpp \
 	SoTransformBoxDragger.cpp \
 	SoTransformerDragger.cpp \
+	SoTransformer2Dragger.cpp \
 	SoTranslate1Dragger.cpp \
 	SoTranslate2Dragger.cpp
 
@@ -717,6 +725,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SoTransformBoxDragger.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SoTransformerDragger.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SoTransformerDragger.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SoTransformer2Dragger.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SoTransformer2Dragger.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SoTranslate1Dragger.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SoTranslate1Dragger.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SoTranslate2Dragger.Plo@am__quote@
