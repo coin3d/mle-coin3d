@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Documents">
@@ -5518,6 +5518,9 @@
     <ClInclude Include="..\..\include\Inventor\SoType.h">
       <Filter>Public Headers\Inventor headers</Filter>
     </ClInclude>
+    <ClInclude Include="data\draggerDefaults\transformer2Dragger.h">
+      <Filter>Source Files\xml/expat sources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <CustomBuildStep Include="data\draggerDefaults\centerballDragger.h">
@@ -5575,9 +5578,6 @@
       <Filter>Private Headers\draggerDefaults local includes</Filter>
     </CustomBuildStep>
     <CustomBuildStep Include="data\draggerDefaults\transformerDragger.h">
-      <Filter>Private Headers\draggerDefaults local includes</Filter>
-    </CustomBuildStep>
-    <CustomBuildStep Include="data\draggerDefaults\transformer2Dragger.h">
       <Filter>Private Headers\draggerDefaults local includes</Filter>
     </CustomBuildStep>
     <CustomBuildStep Include="data\draggerDefaults\translate1Dragger.h">

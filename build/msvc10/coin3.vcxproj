@@ -69,6 +69,9 @@
     <OutDir Condition="'$(Configuration)|$(Platform)'=='DLL (Debug)|Win32'">.\Debug\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='DLL (Debug)|Win32'">.\Debug\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='DLL (Debug)|Win32'">false</LinkIncremental>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='DLL (Debug)|Win32'">coin3d</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='LIB (Debug)|Win32'">coin3sd</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='LIB (Release)|Win32'">coin3s</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='LIB (Debug)|Win32'">
     <ClCompile>
@@ -91,9 +94,13 @@
       <Culture>0x0414</Culture>
     </ResourceCompile>
     <Lib>
-      <OutputFile>coin3sd.lib</OutputFile>
+      <OutputFile>$(Outdir)\coin3sd.lib</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </Lib>
+    <PostBuildEvent>
+      <Message>Stage LIB for install_sdk.bat script.</Message>
+      <Command>xcopy $(Outdir)coin3sd.lib $(Outdir)..</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DLL (Release)|Win32'">
     <Midl>
@@ -127,7 +134,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>opengl32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>coin3.dll</OutputFile>
+      <OutputFile>$(Outdir)\coin3.dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <ProgramDatabaseFile>.\Release/coin3.pdb</ProgramDatabaseFile>
       <SetChecksum>true</SetChecksum>
@@ -137,6 +144,10 @@
       <ImportLibrary>.\Release/coin3.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy $(Outdir)coin3.dll $(Outdir)..</Command>
+      <Message>Stage DLL for install_sdk.bat script.</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='LIB (Release)|Win32'">
     <ClCompile>
@@ -160,9 +171,13 @@
       <Culture>0x0414</Culture>
     </ResourceCompile>
     <Lib>
-      <OutputFile>coin3s.lib</OutputFile>
+      <OutputFile>$(Outdir)\coin3s.lib</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
     </Lib>
+    <PostBuildEvent>
+      <Message>Stage LIB for install_sdk.bat script.</Message>
+      <Command>xcopy $(Outdir)coin3s.lib $(Outdir)..</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='DLL (Debug)|Win32'">
     <Midl>
@@ -195,7 +210,7 @@
     </ResourceCompile>
     <Link>
       <AdditionalDependencies>opengl32.lib;winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>coin3d.dll</OutputFile>
+      <OutputFile>$(Outdir)\coin3d.dll</OutputFile>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>.\Debug/coin3d.pdb</ProgramDatabaseFile>
@@ -205,6 +220,10 @@
       <ImportLibrary>.\Debug/coin3d.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy $(Outdir)coin3d.dll $(Outdir)..</Command>
+      <Message>Stage DLL for install_sdk.bat script.</Message>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="..\..\COPYING" />
