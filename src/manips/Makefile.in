@@ -100,14 +100,14 @@ am__manips_lst_SOURCES_DIST = SoClipPlaneManip.cpp \
 	SoSpotLightManip.cpp SoTransformManip.cpp \
 	SoCenterballManip.cpp SoHandleBoxManip.cpp SoJackManip.cpp \
 	SoTabBoxManip.cpp SoTrackballManip.cpp SoTransformBoxManip.cpp \
-	SoTransformerManip.cpp commoncode.cpp all-manips-cpp.cpp
+	SoTransformerManip.cpp SoTransformer2Manip.cpp commoncode.cpp all-manips-cpp.cpp
 am__objects_1 = SoClipPlaneManip.$(OBJEXT) \
 	SoDirectionalLightManip.$(OBJEXT) SoPointLightManip.$(OBJEXT) \
 	SoSpotLightManip.$(OBJEXT) SoTransformManip.$(OBJEXT) \
 	SoCenterballManip.$(OBJEXT) SoHandleBoxManip.$(OBJEXT) \
 	SoJackManip.$(OBJEXT) SoTabBoxManip.$(OBJEXT) \
 	SoTrackballManip.$(OBJEXT) SoTransformBoxManip.$(OBJEXT) \
-	SoTransformerManip.$(OBJEXT) commoncode.$(OBJEXT)
+	SoTransformerManip.$(OBJEXT) SoTransformer2Manip.$(OBJEXT) commoncode.$(OBJEXT)
 am__objects_2 = all-manips-cpp.$(OBJEXT)
 @HACKING_COMPACT_BUILD_FALSE@am__objects_3 = $(am__objects_1)
 @HACKING_COMPACT_BUILD_TRUE@am__objects_3 = $(am__objects_2)
@@ -118,7 +118,7 @@ am__EXTRA_manips_lst_SOURCES_DIST = all-manips-cpp.cpp \
 	SoTransformManip.cpp SoCenterballManip.cpp \
 	SoHandleBoxManip.cpp SoJackManip.cpp SoTabBoxManip.cpp \
 	SoTrackballManip.cpp SoTransformBoxManip.cpp \
-	SoTransformerManip.cpp commoncode.cpp
+	SoTransformerManip.cpp SoTransformer2Manip.cpp commoncode.cpp
 manips_lst_OBJECTS = $(am_manips_lst_OBJECTS)
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(libmanipsincdir)"
 libLTLIBRARIES_INSTALL = $(INSTALL)
@@ -129,12 +129,12 @@ am__libmanips_la_SOURCES_DIST = SoClipPlaneManip.cpp \
 	SoSpotLightManip.cpp SoTransformManip.cpp \
 	SoCenterballManip.cpp SoHandleBoxManip.cpp SoJackManip.cpp \
 	SoTabBoxManip.cpp SoTrackballManip.cpp SoTransformBoxManip.cpp \
-	SoTransformerManip.cpp commoncode.cpp all-manips-cpp.cpp
+	SoTransformerManip.cpp SoTransformer2Manip.cpp commoncode.cpp all-manips-cpp.cpp
 am__objects_6 = SoClipPlaneManip.lo SoDirectionalLightManip.lo \
 	SoPointLightManip.lo SoSpotLightManip.lo SoTransformManip.lo \
 	SoCenterballManip.lo SoHandleBoxManip.lo SoJackManip.lo \
 	SoTabBoxManip.lo SoTrackballManip.lo SoTransformBoxManip.lo \
-	SoTransformerManip.lo commoncode.lo
+	SoTransformerManip.lo SoTransformer2Manip.lo commoncode.lo
 am__objects_7 = all-manips-cpp.lo
 @HACKING_COMPACT_BUILD_FALSE@am__objects_8 = $(am__objects_6)
 @HACKING_COMPACT_BUILD_TRUE@am__objects_8 = $(am__objects_7)
@@ -145,7 +145,7 @@ am__EXTRA_libmanips_la_SOURCES_DIST = all-manips-cpp.cpp \
 	SoTransformManip.cpp SoCenterballManip.cpp \
 	SoHandleBoxManip.cpp SoJackManip.cpp SoTabBoxManip.cpp \
 	SoTrackballManip.cpp SoTransformBoxManip.cpp \
-	SoTransformerManip.cpp commoncode.cpp
+	SoTransformerManip.cpp SoTransformer2Manip.cpp commoncode.cpp
 libmanips_la_OBJECTS = $(am_libmanips_la_OBJECTS)
 libmanips@SUFFIX@LINKHACK_la_LIBADD =
 am__libmanips@SUFFIX@LINKHACK_la_SOURCES_DIST = SoClipPlaneManip.cpp \
@@ -153,7 +153,7 @@ am__libmanips@SUFFIX@LINKHACK_la_SOURCES_DIST = SoClipPlaneManip.cpp \
 	SoSpotLightManip.cpp SoTransformManip.cpp \
 	SoCenterballManip.cpp SoHandleBoxManip.cpp SoJackManip.cpp \
 	SoTabBoxManip.cpp SoTrackballManip.cpp SoTransformBoxManip.cpp \
-	SoTransformerManip.cpp commoncode.cpp all-manips-cpp.cpp
+	SoTransformerManip.cpp SoTransformer2Manip.cpp commoncode.cpp all-manips-cpp.cpp
 am_libmanips@SUFFIX@LINKHACK_la_OBJECTS = $(am__objects_8)
 am__EXTRA_libmanips@SUFFIX@LINKHACK_la_SOURCES_DIST =  \
 	all-manips-cpp.cpp SoClipPlaneManip.cpp \
@@ -161,7 +161,7 @@ am__EXTRA_libmanips@SUFFIX@LINKHACK_la_SOURCES_DIST =  \
 	SoSpotLightManip.cpp SoTransformManip.cpp \
 	SoCenterballManip.cpp SoHandleBoxManip.cpp SoJackManip.cpp \
 	SoTabBoxManip.cpp SoTrackballManip.cpp SoTransformBoxManip.cpp \
-	SoTransformerManip.cpp commoncode.cpp
+	SoTransformerManip.cpp SoTransformer2Manip.cpp commoncode.cpp
 libmanips@SUFFIX@LINKHACK_la_OBJECTS =  \
 	$(am_libmanips@SUFFIX@LINKHACK_la_OBJECTS)
 depcomp = $(SHELL) $(top_srcdir)/cfg/depcomp
@@ -190,6 +190,8 @@ am__depfiles_maybe = depfiles
 @AMDEP_TRUE@	./$(DEPDIR)/SoTransformManip.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/SoTransformerManip.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/SoTransformerManip.Po \
+@AMDEP_TRUE@	./$(DEPDIR)/SoTransformer2Manip.Plo \
+@AMDEP_TRUE@	./$(DEPDIR)/SoTransformer2Manip.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/all-manips-cpp.Plo \
 @AMDEP_TRUE@	./$(DEPDIR)/all-manips-cpp.Po \
 @AMDEP_TRUE@	./$(DEPDIR)/commoncode.Plo \
@@ -471,6 +473,7 @@ RegularSources = \
 	SoTrackballManip.cpp \
 	SoTransformBoxManip.cpp \
 	SoTransformerManip.cpp \
+	SoTransformer2Manip.cpp \
 	commoncode.cpp
 
 LinkHackSources = \
@@ -630,6 +633,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SoTransformManip.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SoTransformerManip.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SoTransformerManip.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SoTransformer2Manip.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SoTransformer2Manip.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/all-manips-cpp.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/all-manips-cpp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/commoncode.Plo@am__quote@
