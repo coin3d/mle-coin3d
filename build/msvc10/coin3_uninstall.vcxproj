@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
+    <ProjectGuid>{AE559A07-7453-B792-9096-D5E95961F5FB}</ProjectGuid>
     <Keyword>MakeFileProj</Keyword>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -62,8 +63,8 @@
     <_ProjectFileVersion>10.0.40219.1</_ProjectFileVersion>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='DLL (Release)|Win32'">.\Release\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='DLL (Release)|Win32'">.\Release\</IntDir>
-    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='DLL (Release)|Win32'">..\misc\uninstall-sdk.bat dll release msvc9 coin3</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='DLL (Release)|Win32'">..\misc\uninstall-sdk.bat dll release msvc9 coin3 </NMakeReBuildCommandLine>
+    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='DLL (Release)|Win32'">..\misc\uninstall-sdk.bat dll release msvc10 coin3</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='DLL (Release)|Win32'">..\misc\uninstall-sdk.bat dll release msvc10 coin3 </NMakeReBuildCommandLine>
     <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='DLL (Release)|Win32'" />
     <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='DLL (Release)|Win32'">coin3_uninstall.exe</NMakeOutput>
     <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='DLL (Release)|Win32'">$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
@@ -73,8 +74,8 @@
     <NMakeForcedUsingAssemblies Condition="'$(Configuration)|$(Platform)'=='DLL (Release)|Win32'">$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='DLL (Debug)|Win32'">.\Debug\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='DLL (Debug)|Win32'">.\Debug\</IntDir>
-    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='DLL (Debug)|Win32'">..\misc\uninstall-sdk.bat dll debug msvc9 coin3</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='DLL (Debug)|Win32'">..\misc\uninstall-sdk.bat dll debug msvc9 coin3 </NMakeReBuildCommandLine>
+    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='DLL (Debug)|Win32'">..\misc\uninstall-sdk.bat dll debug msvc10 coin3</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='DLL (Debug)|Win32'">..\misc\uninstall-sdk.bat dll debug msvc10 coin3 </NMakeReBuildCommandLine>
     <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='DLL (Debug)|Win32'" />
     <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='DLL (Debug)|Win32'">coin3_uninstall.exe</NMakeOutput>
     <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='DLL (Debug)|Win32'">$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
@@ -84,8 +85,8 @@
     <NMakeForcedUsingAssemblies Condition="'$(Configuration)|$(Platform)'=='DLL (Debug)|Win32'">$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='LIB (Release)|Win32'">.\StaticRelease\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='LIB (Release)|Win32'">.\StaticRelease\</IntDir>
-    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='LIB (Release)|Win32'">..\misc\uninstall-sdk.bat lib release msvc9 coin3</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='LIB (Release)|Win32'">..\misc\uninstall-sdk.bat lib release msvc9 coin3 </NMakeReBuildCommandLine>
+    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='LIB (Release)|Win32'">..\misc\uninstall-sdk.bat lib release msvc10 coin3</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='LIB (Release)|Win32'">..\misc\uninstall-sdk.bat lib release msvc10 coin3 </NMakeReBuildCommandLine>
     <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='LIB (Release)|Win32'" />
     <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='LIB (Release)|Win32'">coin3_uninstall.exe</NMakeOutput>
     <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='LIB (Release)|Win32'">$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
@@ -95,8 +96,8 @@
     <NMakeForcedUsingAssemblies Condition="'$(Configuration)|$(Platform)'=='LIB (Release)|Win32'">$(NMakeForcedUsingAssemblies)</NMakeForcedUsingAssemblies>
     <OutDir Condition="'$(Configuration)|$(Platform)'=='LIB (Debug)|Win32'">.\StaticDebug\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='LIB (Debug)|Win32'">.\StaticDebug\</IntDir>
-    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='LIB (Debug)|Win32'">..\misc\uninstall-sdk.bat lib debug msvc9 coin3</NMakeBuildCommandLine>
-    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='LIB (Debug)|Win32'">..\misc\uninstall-sdk.bat lib debug msvc9 coin3 </NMakeReBuildCommandLine>
+    <NMakeBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='LIB (Debug)|Win32'">..\misc\uninstall-sdk.bat lib debug msvc10 coin3</NMakeBuildCommandLine>
+    <NMakeReBuildCommandLine Condition="'$(Configuration)|$(Platform)'=='LIB (Debug)|Win32'">..\misc\uninstall-sdk.bat lib debug msvc10 coin3 </NMakeReBuildCommandLine>
     <NMakeCleanCommandLine Condition="'$(Configuration)|$(Platform)'=='LIB (Debug)|Win32'" />
     <NMakeOutput Condition="'$(Configuration)|$(Platform)'=='LIB (Debug)|Win32'">coin3_uninstall.exe</NMakeOutput>
     <NMakePreprocessorDefinitions Condition="'$(Configuration)|$(Platform)'=='LIB (Debug)|Win32'">$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
