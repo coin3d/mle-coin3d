@@ -1140,7 +1140,7 @@ SoTransformer2Dragger::metaKeyChangeCB(void *, SoDragger *d)
 
 // invalidate surround scale node, if it exists
 static void
-invalidate_surroundscale(SoBaseKit * kit)
+SoTransformer2Dragger_invalidate_surroundscale(SoBaseKit * kit)
 {
   SoSurroundScale * ss = (SoSurroundScale*)
     kit->getPart("surroundScale", FALSE);
@@ -1153,7 +1153,7 @@ invalidate_surroundscale(SoBaseKit * kit)
 void
 SoTransformer2Dragger::dragStart(void)
 {
-  invalidate_surroundscale(this);
+  SoTransformer2Dragger_invalidate_surroundscale(this);
 
   int i;
   const SoPath *pickpath = this->getPickPath();
@@ -1860,7 +1860,7 @@ SoTransformer2Dragger::dragFinish(void)
           s[0], s[1], s[2],
           sox[0], sox[1], sox[2], soa);
 #endif // debug code
-  invalidate_surroundscale(this);
+  SoTransformer2Dragger_invalidate_surroundscale(this);
 }
 
 void

@@ -47,6 +47,7 @@
 #include "SoTrackballDragger.cpp"
 #include "SoTransformBoxDragger.cpp"
 #include "SoTransformerDragger.cpp"
+#include "SoTransformer2Dragger.cpp"
 #include "SoTranslate1Dragger.cpp"
 #include "SoTranslate2Dragger.cpp"
 
