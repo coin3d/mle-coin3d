@@ -40,6 +40,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <cstdlib>
 
 #include "glue/freetype.h"
 #include "glue/GLUWrapper.h"
