@@ -25,6 +25,9 @@
 \**************************************************************************/
 
 #include <Inventor/C/basic.h>
+#ifndef NDEBUG
+#include <Inventor/C/errors/debugerror.h>
+#endif // !NDEBUG
 
 /* ********************************************************************** */
 /* Trap people trying to use Inventor headers while compiling C source code.

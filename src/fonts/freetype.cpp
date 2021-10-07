@@ -46,6 +46,8 @@
 
 /* ************************************************************************* */
 
+#include <cstdlib>
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
